@@ -1,0 +1,91 @@
+import { useState } from 'react';
+import { Board } from './Board';
+import PgnNotation from './logic/PgnNotation';
+
+export default function Game() {
+  const initialChessBoard = [
+    'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
+    'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
+    '', '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '', '',
+    'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
+    'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'
+  ];
+
+  const [history, setHistory] = useState([{
+    squares: initialChessBoard,
+    enPassantTarget: null,
+    lastDoubleStepPawn: null,
+    pgn : 'Start'
+  }]);
+   
+  const [currentMove, setCurrentMove] = useState(0);
+  const current = history[currentMove];
+  const currentSquares = current ? current.squares : initialChessBoard;
+  const currentPlayer = currentMove % 2 === 0 ? 'white' : 'black';
+
+  function handleMove(nextSquares, newEnPassantTarget, lastDoubleStepPawn, 
+    from, to, capturedPiece, isEnPassant) {
+    const pgn = PgnNotation.getMoveNotation(
+      from, 
+      to, 
+      currentSquares[from], 
+      capturedPiece,
+      isEnPassant
+    );
+    
+    const nextHistory = [...history.slice(0, currentMove + 1), {
+      squares: nextSquares,
+      enPassantTarget: newEnPassantTarget,
+      lastDoubleStepPawn: lastDoubleStepPawn,
+      pgn: pgn
+    }];
+    
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
+  }
+
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove);
+  }
+  const moves = [];
+  if (history.length > 2)
+  for (let i = 1; i < history.length; i += 2) {
+    const whiteMove = history[i];
+    const blackMove = history[i + 1];
+    const moveNumber = (i-1) / 2 + 1;
+
+    let description = `#${moveNumber}`;
+    if (whiteMove && whiteMove.pgn && whiteMove.pgn !== 'Start') {
+      description += ` ${whiteMove.pgn}`;
+    }
+    if (blackMove && blackMove.pgn) {
+      description += `   -   ${blackMove.pgn}`;
+    }
+
+    moves.push(
+      <li key={i}>
+        <button class="move" onClick={() => jumpTo(i)}>{description}</button>
+      </li>
+    );
+  }
+
+return (
+    <div className="game">
+      <div className="game-board">
+        <Board
+          currentPlayer={currentPlayer}
+          squares={currentSquares}
+          onMove={handleMove} 
+          enPassantTarget={current? current.enPassantTarget : null}
+          lastDoubleStepPawn={current? current.lastDoubleStepPawn : null} />
+      </div>
+      <div className="game-info">
+        <div className="status"><strong>{currentPlayer}</strong> to move</div>
+        <ol>{moves}</ol>
+      </div>
+    </div>
+  );
+}
