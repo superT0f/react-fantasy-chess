@@ -1,5 +1,4 @@
-import Piece from './components/Piece';
-
+import Entity from './components/Entity';
 
 export function Square({ 
   value, 
@@ -11,26 +10,22 @@ export function Square({
   isOpponentPiece,
   isEnPassantTarget
 }) {
-
   const indicator = isOpponentPiece ? "move-indicator-opponent" : "move-indicator";
 
-  
   return (
     <button 
       className={`square 
         ${isSelected ? 'selected' : ''} 
         ${isValidMove ? 'valid-move' : ''}
+        ${isValidMove && isOpponentPiece ? 'move-indicator-opponent' : ''}
+        ${isValidMove && !isOpponentPiece ? 'move-indicator' : ''}
         ${isEnPassantTarget ? 'en-passant-target' : ''}`}
       onClick={onSquareClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Piece piece={value} />
-      {isValidMove && <div className={indicator}></div>}
+      <Entity entity={value} />
+      {/* {isValidMove && <div className={indicator}></div>} */}
     </button>
   );
 }
-
-
-
-

@@ -1,10 +1,9 @@
-
-const Piece = ({ piece }) => {
-  if (!piece) return null;
+const Entity = ({ entity }) => {
+  if (!entity) return null;
   
-  const color     = piece === piece.toUpperCase() ? 'w' : 'b';
-  const pieceType = piece.toLowerCase();
-  const pieceMap  = {
+  const color = entity === entity.toUpperCase() ? 'w' : 'b';
+  const entityType = entity.toLowerCase();
+  const entityMap = {
     'p': 'pawn',
     'r': 'rook',
     'n': 'knight',
@@ -13,15 +12,15 @@ const Piece = ({ piece }) => {
     'k': 'king'
   };
   
-  const imageName = `${color}_${pieceMap[pieceType]}`;
+  const imageName = `${color}_${entityMap[entityType]}`;
   
   try {
     const image = require(`../assets/pieces/${imageName}.png`);
-    return <img src={image} alt={piece} className="chess-piece" />;
+    return <img src={image} alt={entity} className="chess-entity" />;
   } catch (e) {
-    console.error(`Image non trouvée: ${imageName}`);
-    return piece; // return character if image not found
+    console.error(`Image not found: ${imageName}`);
+    return entity;
   }
 };
 
-export default Piece;
+export default Entity;
