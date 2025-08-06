@@ -1,9 +1,11 @@
 help:
 	@echo "Usage :\n\
-	make clean|prod|dev\n"
+	make clean|prod|dev|bump\n"
 	@echo "make clean		clean public and build folders"
 	@echo "make prod		build for production env"
 	@echo "make dev		serve for dev env"
+	@echo "make bump		update version in package.json based on git revision"
+
 clean:
 	rm -Rf build/*
 
@@ -13,6 +15,17 @@ prod:clean
 dev:clean
 	npm run dev
 	@echo "Happy coding!"
+
+bump:
+	@echo "Bumping version..."
+	@git rev-list --count HEAD > .revision
+	@REVISION=$$(cat .revision); \
+	VERSION=$$(node -p "require('./package.json').version"); \
+	MAJOR_MINOR=$$(echo $$VERSION | cut -d. -f1-2); \
+	NEW_VERSION="$$MAJOR_MINOR.$$REVISION"; \
+	npm --no-git-tag-version version $$NEW_VERSION > /dev/null; \
+	echo "Version updated to $$NEW_VERSION"
+
 mount: ## ⛰️ Mount Gandi to ./production
 	@echo "⛰️ Mounting Gandi to ./production"
 	@mkdir ./production || (echo "./production already mounted" ; exit 1)
@@ -34,14 +47,11 @@ umount: ## ⬇️ Unmount Gandi
 check-prod-link: ## 🔍 Check for production links and sources
 	@echo "🔍 Checking production link : "
 
-
-
 push: check-prod-link ## ⬆️ Push content to Gandi
 	@echo "⬆️ Pushing content to Gandi"
 	rsync -avz --no-owner --no-group ./build/* ./production/play/ \
 	&& echo "Pushed to Gandi" \
 	|| echo "Failed to push to Gandi"
 
-
-.PHONY: help clean prod dev deployToSFTP
+.PHONY: help clean prod dev deployToSFTP bump
 .DEFAULT_GOAL := help
