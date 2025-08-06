@@ -151,6 +151,30 @@ body {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+.footer {
+  margin-top: auto;
+  padding: 5px;
+  text-align: center;
+  
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+}
+.footer a {
+  color: var(--gold-accent);
+  text-decoration: none;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+.footer .heart {
+  color: red;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin: 0 2px;
+}
+
 /* Responsive Design */
 @media (min-width: 768px) {
   .square {
