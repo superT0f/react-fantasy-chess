@@ -6,9 +6,11 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [lastMovedSquare, setLastMovedSquare] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
+  const [isOpponentPiece, setIsOpponentPiece] = useState(false);
 
   function handleMouseEnter(i) {
     if (squares[i]) {
+      setIsOpponentPiece(Entity.getColorByEntity(squares[i]) !== currentPlayer);
       setValidMoves(getAllValidMoves(i));
     }
   }
@@ -28,19 +30,28 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
         moves.push(to);
       }
     }
+
     return moves;
   }
 
 
   function isValidMove(from, to) {
     if (from === to) return false;
-    
-    const entityChar = squares[from];    
-    if (!entityChar) return false;
-    const toentity = squares[to];
-    if (toentity && Entity.getColorByEntity(toentity) === Entity.getColorByEntity(entityChar)) return false;
 
-    return (Entity.fromChar(entityChar, from, squares)).isValidMove(to);
+    const entityChar = squares[from];
+    const toentity = squares[to];
+
+    if (!entityChar) return false;
+
+    if (toentity && Entity.getColorByEntity(toentity) ===
+      Entity.getColorByEntity(entityChar)) {
+      return false;
+    }
+
+    // Ask entity type obj if the move is valid
+    const isValid = (Entity.fromChar(entityChar, from, squares)).isValidMove(to);
+
+    return isValid;
   }
 
 
@@ -93,6 +104,7 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
     }
   }
 
+
   return (
     <>
       {Array(8).fill(null).map((_, row) => (
@@ -100,8 +112,6 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
           {Array(8).fill(null).map((_, col) => {
             const squareIndex = row * 8 + col;
             var isValidMove = validMoves.includes(squareIndex);
-            const isPlayerPiece = squares[squareIndex] && Entity.getColorByEntity(squares[squareIndex]) === currentPlayer;
-            const isOpponentPiece = !isPlayerPiece;
             return (
               <Square
                 key={squareIndex}
