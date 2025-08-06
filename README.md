@@ -1,6 +1,6 @@
 # Fantasy Chess - React Implementation
 
-![Fantasy Chess Screenshot](./screenshot.png)
+![Fantasy Chess Screenshot](./screens/screenshot-2025-08-06.png)
 
 A modern chess game implementation built with React, featuring classic chess rules with visual enhancements.
 
@@ -48,7 +48,7 @@ A modern chess game implementation built with React, featuring classic chess rul
 
 1. Clone the repository:
    ```bash
-   git clone https://your-repository-url.git
+   git clone https://gitlab.com/SuperT0f/react-fantasy-chess.git
    ```
 2. Install dependencies:
 
