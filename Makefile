@@ -13,7 +13,7 @@ prod:clean
 	npm run build
 
 dev:clean
-	npm run dev
+	npm run start
 	@echo "Happy coding!"
 
 bump:
@@ -25,6 +25,7 @@ bump:
 	NEW_VERSION="$$MAJOR_MINOR.$$REVISION"; \
 	npm --no-git-tag-version version $$NEW_VERSION > /dev/null; \
 	echo "Version updated to $$NEW_VERSION"
+
 
 mount: ## ⛰️ Mount Gandi to ./production
 	@echo "⛰️ Mounting Gandi to ./production"
@@ -44,14 +45,21 @@ umount: ## ⬇️ Unmount Gandi
 	umount ./production && echo "Gandi unmounted" || echo "Failed to unmount Gandi"
 	rmdir ./production
 
+ingest: ## 📥 Ingest content
+	@echo "📥 Ingesting content"
+	gitingest . -e build/ -e node_modules/ -e production/ -e LICENCE.md
+
 check-prod-link: ## 🔍 Check for production links and sources
 	@echo "🔍 Checking production link : "
+	@grep "Fantasy Chess" ./production/play/index.html \
+		&& echo "OK" \
+		|| echo "Not a valid production sources"
 
 push: check-prod-link ## ⬆️ Push content to Gandi
 	@echo "⬆️ Pushing content to Gandi"
 	rsync -avz --no-owner --no-group ./build/* ./production/play/ \
-	&& echo "Pushed to Gandi" \
-	|| echo "Failed to push to Gandi"
+		&& echo "Pushed to Gandi" \
+		|| echo "Failed to push to Gandi"
 
 .PHONY: help clean prod dev deployToSFTP bump
 .DEFAULT_GOAL := help
