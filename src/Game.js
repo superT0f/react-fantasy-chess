@@ -57,7 +57,7 @@ export default function Game() {
     const blackMove = history[i + 1];
     const moveNumber = (i-1) / 2 + 1;
 
-    let description = `#${moveNumber}`;
+    let description = ``;
     if (whiteMove && whiteMove.pgn && whiteMove.pgn !== 'Start') {
       description += ` ${whiteMove.pgn}`;
     }
@@ -67,25 +67,30 @@ export default function Game() {
 
     moves.push(
       <li key={i}>
-        <button class="move" onClick={() => jumpTo(i)}>{description}</button>
+        <button className="move" onClick={() => jumpTo(i)}>{description}</button>
       </li>
     );
   }
 
 return (
-    <div className="game">
-      <div className="game-board">
-        <Board
-          currentPlayer={currentPlayer}
-          squares={currentSquares}
-          onMove={handleMove} 
-          enPassantTarget={current? current.enPassantTarget : null}
-          lastDoubleStepPawn={current? current.lastDoubleStepPawn : null} />
-      </div>
-      <div className="game-info">
-        <div className="status"><strong>{currentPlayer}</strong> to move</div>
-        <ol>{moves}</ol>
+  <div className="game">
+    <div className="board-container">
+      
+      <div className="game-content">
+        <div className="game-board">
+          <Board
+            currentPlayer={currentPlayer}
+            squares={currentSquares}
+            onMove={handleMove} 
+            enPassantTarget={current? current.enPassantTarget : null}
+            lastDoubleStepPawn={current? current.lastDoubleStepPawn : null} />
+        </div>
+        <div className="game-info">
+          <div className="status">to move : <span>{currentPlayer}</span></div>
+          <ol>{moves}</ol>
+        </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
