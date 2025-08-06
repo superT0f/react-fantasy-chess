@@ -1,6 +1,7 @@
 import Entity from './Entity';
+import BaseEntity from './BaseEntity';
 
-export class Pawn extends Entity {
+export default class Pawn extends BaseEntity {
   isValidMove(to) {
     const from = this.position;
     
@@ -15,31 +16,31 @@ export class Pawn extends Entity {
     const enPassantRow = this.color === 'white' ? 3 : 4;
 
     if (fromCol === toCol) {
-      if (toRow === fromRow + direction && squares[to] === '')
+      if (toRow === fromRow + direction && this.squares[to] === '')
         return true;
 
       if (fromRow === startRow &&
         toRow === fromRow + 2 * direction &&
-        squares[to] === '' &&
+        this.squares[to] === '' &&
         this.isPathClear(to))
         return true;
     }
 
     if (colDiff === 1 && rowDiff === 1 &&
-      squares[to] !== '' &&
-      getPieceColor(squares[to]) !== this.color) {
+      this.squares[to] !== '' &&
+      Entity.getColorByEntity(this.squares[to]) !== this.color) {
       return true;
     }
 
     if (colDiff === 1 && rowDiff === 1 &&
       toRow === enPassantRow &&
-      to === enPassantTarget) {
+      to === this.enPassantTarget) {
 
       const adjacentCol = toCol;
       const adjacentRow = fromRow;
       const adjacentIndex = adjacentRow * 8 + adjacentCol;
 
-      if (adjacentIndex === lastDoubleStepPawn) {
+      if (adjacentIndex === this.lastDoubleStepPawn) {
         return true;
       }
     }

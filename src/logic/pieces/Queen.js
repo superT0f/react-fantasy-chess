@@ -1,12 +1,12 @@
-import Entity from './Entity';
+import BaseEntity from '../BaseEntity';
 
-export class Queen extends Entity {
+export default class Queen extends BaseEntity {
   isValidMove(to) {
     const toRow = Math.floor(to / 8);
     const toCol = to % 8;
-    const rowDiff = Math.abs(toRow - fromRow);
-    const colDiff = Math.abs(toCol - fromCol);
-    return isPathClear(from, to, pieceType) &&
+    const rowDiff = Math.abs(toRow - this.fromRow);
+    const colDiff = Math.abs(toCol - this.fromCol);
+    return this.isPathClear(to) &&
           (this.fromRow === toRow || this.fromCol === toCol || rowDiff === colDiff);
   }
 }

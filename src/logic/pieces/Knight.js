@@ -1,11 +1,11 @@
-import Entity from './Entity';
+import BaseEntity from '../BaseEntity';
 
-export class Knight extends Entity {
+export default class Knight extends BaseEntity {
   isValidMove(to) {
     const toRow = Math.floor(to / 8);
     const toCol = to % 8;
-    const rowDiff = Math.abs(toRow - fromRow);
-    const colDiff = Math.abs(toCol - fromCol);
+    const rowDiff = Math.abs(toRow - this.fromRow);
+    const colDiff = Math.abs(toCol - this.fromCol);
     return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
   }
 }

@@ -1,13 +1,19 @@
 
-import { Pawn } from "./Pawn";
-import { Rook } from "./pieces/Rook";
-import { Knight } from "./pieces/Knight";
-import { Bishop } from "./pieces/Bishop";
-import { Queen } from "./pieces/Queen";
-import { King } from "./pieces/King";
+import Pawn from "./Pawn";
+import Rook from "./pieces/Rook";
+import Knight from "./pieces/Knight";
+import Bishop from "./pieces/Bishop";
+import Queen from "./pieces/Queen";
+import King from "./pieces/King";
+import BaseEntity from './BaseEntity';
 
-export default class Entity {
-  static fromChar(c, position) {
+export default class Entity extends BaseEntity {
+  static getColorByEntity(entity) {
+    if (!entity) return null;
+    return entity === entity.toUpperCase() ? 'white' : 'black';
+  }
+
+  static fromChar(c, position, squares, enPassantTarget = null, lastDoubleStepPawn = null) {
     const type = c.toLowerCase();
     const color = c === c.toUpperCase() ? 'white' : 'black';
     // if (!['p', 'r', 'n', 'b', 'q', 'k'].includes(type)) {
@@ -16,21 +22,21 @@ export default class Entity {
 
     switch (type) {
       case 'p':
-        return new Pawn(type, color, position);
+        return new Pawn(type, color, position, squares, enPassantTarget, lastDoubleStepPawn);
       case 'r':
-        return new Rook(type, color, position);
+        return new Rook(type, color, position, squares);
       case 'n':
-        return new Knight(type, color, position);
+        return new Knight(type, color, position, squares);
       case 'b':
-        return new Bishop(type, color, position);
+        return new Bishop(type, color, position, squares);
       case 'q':
-        return new Queen(type, color, position);
+        return new Queen(type, color, position, squares);
       case 'k':
-        return new King(type, color, position);
+        return new King(type, color, position, squares);
       default:
         throw new Error(`Unknown entity type: ${type}`);
     }
-    
+
   }
   constructor(type, color, position) {
     this.type = type.toLowerCase();
@@ -43,40 +49,7 @@ export default class Entity {
     this.fromRow = Math.floor(this.position / 8);
     this.fromCol = this.position % 8;
   }
-isPathClear(to) {
-    if (this.type === 'n') return true;
 
-    const toRow = Math.floor(to / 8);
-    const toCol = to % 8;
-
-    const rowStep = Math.sign(toRow - this.fromRow);
-    const colStep = Math.sign(toCol - this.fromCol);
-
-    let currentRow = this.fromRow + rowStep;
-    let currentCol = this.fromCol + colStep;
-
-    while (currentRow !== toRow || currentCol !== toCol) {
-      const index = currentRow * 8 + currentCol;
-      if (squares[index] !== '') return false;
-
-      currentRow += rowStep;
-      currentCol += colStep;
-    }
-    return true;
-  }
-
-  getSymbol() {
-    const symbols = {
-      'p': '',
-      'r': 'R',
-      'n': 'N',
-      'b': 'B',
-      'q': 'Q',
-      'k': 'K'
-    };
-    
-    return this.color === 'white' ? symbols[this.type].toUpperCase() : symbols[this.type];
-  }
 
   isValidMove(to) {
     // @see Implementation in subclasses

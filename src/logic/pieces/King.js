@@ -1,7 +1,12 @@
-import Entity from './Entity';
+import BaseEntity from '../BaseEntity';
 
-export class King extends Entity {
+export default class King extends BaseEntity {
   isValidMove(to) {
-    return false;
+    const toRow = Math.floor(to / 8);
+    const toCol = to % 8;
+    const rowDiff = Math.abs(toRow - this.fromRow);
+    const colDiff = Math.abs(toCol - this.fromCol);
+    return this.isPathClear(to)
+           && rowDiff <= 1 && colDiff <= 1;
   }
 }

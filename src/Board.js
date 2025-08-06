@@ -31,44 +31,16 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
     return moves;
   }
 
-  function isPathClearOld(from, to, pieceType) {
-    if (pieceType === 'n') return true;
-
-    const fromRow = Math.floor(from / 8);
-    const fromCol = from % 8;
-    const toRow = Math.floor(to / 8);
-    const toCol = to % 8;
-
-    const rowStep = Math.sign(toRow - fromRow);
-    const colStep = Math.sign(toCol - fromCol);
-
-    let currentRow = fromRow + rowStep;
-    let currentCol = fromCol + colStep;
-
-    while (currentRow !== toRow || currentCol !== toCol) {
-      const index = currentRow * 8 + currentCol;
-      if (squares[index] !== '') return false;
-
-      currentRow += rowStep;
-      currentCol += colStep;
-    }
-    return true;
-  }
-
-  function getColor(entity) {
-    if (!entity) return null;
-    return entity === entity.toUpperCase() ? 'white' : 'black';
-  }
 
   function isValidMove(from, to) {
     if (from === to) return false;
     
-    const entityStr = squares[from];    
-    if (!entityStr) return false;
+    const entityChar = squares[from];    
+    if (!entityChar) return false;
     const toentity = squares[to];
-    if (toentity && getColor(toentity) === getColor(Entity.fromString(entityStr))) return false;
+    if (toentity && Entity.getColorByEntity(toentity) === Entity.getColorByEntity(entityChar)) return false;
 
-    return (Entity.fromString(entityStr)).isValidMove(to);
+    return (Entity.fromChar(entityChar, from, squares)).isValidMove(to);
   }
 
 
@@ -76,11 +48,11 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
     if (selectedSquare !== null) {
       if (isValidMove(selectedSquare, i)) {
         const newSquares = [...squares];
-        const piece = squares[selectedSquare];
-        const pieceType = piece.toLowerCase();
-        const pieceColor = getPieceColor(piece);
+        const entityChar = squares[selectedSquare];
+        const entityType = entityChar.toLowerCase();
+        const entityColor = Entity.getColorByEntity(entityChar);
 
-        newSquares[i] = piece;
+        newSquares[i] = entityChar;
         newSquares[selectedSquare] = '';
 
         let newEnPassantTarget = null;
@@ -89,10 +61,10 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
         let capturedPiece = null;
         let isEnPassant = false;
 
-        if (pieceType === 'p' && enPassantTarget !== null
+        if (entityType === 'p' && enPassantTarget !== null
           && i === enPassantTarget) {
 
-          const direction = pieceColor === 'white' ? -1 : 1;
+          const direction = entityColor === 'white' ? -1 : 1;
           const captureRow = Math.floor(i / 8) - direction;
           const capturedIndex = captureRow * 8 + (i % 8);
 
@@ -115,7 +87,7 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
       }
       setSelectedSquare(null);
       setValidMoves([]);
-    } else if (squares[i] && getPieceColor(squares[i]) === currentPlayer) {
+    } else if (squares[i] && Entity.getColorByEntity(squares[i]) === currentPlayer) {
       setSelectedSquare(i);
       setValidMoves(getAllValidMoves(i));
     }
@@ -128,7 +100,7 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
           {Array(8).fill(null).map((_, col) => {
             const squareIndex = row * 8 + col;
             var isValidMove = validMoves.includes(squareIndex);
-            const isPlayerPiece = squares[squareIndex] && getPieceColor(squares[squareIndex]) === currentPlayer;
+            const isPlayerPiece = squares[squareIndex] && Entity.getColorByEntity(squares[squareIndex]) === currentPlayer;
             const isOpponentPiece = !isPlayerPiece;
             return (
               <Square
