@@ -60,10 +60,11 @@ body {
 
 /* Selected square */
 .square.selected {
-  box-shadow: 0 0 10px var(--selected-square);
+  box-shadow: 10px 0 10px var(--selected-square);
   border: 2px solid lightgreen;
-  border-radius: 20%;
-  z-index: 2;
+  border-radius: 10%;
+  background: linear-gradient(135deg, rgba(49, 163, 38, 0.8), rgba(49, 163, 38, 0.2));
+  transition: background-color 0.3s ease;
 }
 
 /* ===== Entity Styles ===== */
@@ -76,21 +77,52 @@ body {
 
 .move-indicator-opponent {
   background-color: none;
-  border : 10px solid var(--highlight-capture) !important;
+  border : 2px solid var(--highlight-capture) !important;
   z-index: 5;
   opacity: 0.8;
 }
 
 .move-indicator {
   background-color: var(--highlight-move)!important;
+  
+  border : 2px solid var(--highlight-capture) !important;
+  z-index: 5;
+  opacity: 0.8;
 }
 
-.valid-move {   
+/* .valid-move {   
     border-radius: 5%;
     border: 5px dotted #31a326;
     z-index: 4;
     border-width: medium;
+} */
+
+
+
+.valid-move::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background-color: rgba(0, 255, 0, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
 }
+
+
+/* Indicateur de mouvement valide */
+/* .move-indicator {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(0, 255, 0, 0.3);
+  border-radius: 50%;
+  z-index: 1;
+} */
+
 /* ===== Game Layout ===== */
 .game {
   display: flex;
@@ -152,7 +184,7 @@ body {
 }
 
 .footer {
-  margin-top: auto;
+  margin-top: 25px;
   padding: 5px;
   text-align: center;
   
@@ -173,6 +205,22 @@ body {
   font-weight: bold;
   font-size: 1.2em;
   margin: 0 2px;
+}
+
+.positions {
+  position: absolute;
+  width: 10%;
+  height: 10%;
+  align-items:first baseline;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-shadow: #31a326 0px 0px 5px;
+}
+.positions.right {
+  right: -12px;
+}
+.positions.bottom {
+  bottom: -6px;
 }
 
 /* Responsive Design */

@@ -16,33 +16,31 @@ export default function Game() {
 
   const [history, setHistory] = useState([{
     squares: initialChessBoard,
-    enPassantTarget: null,
-    lastDoubleStepPawn: null,
     pgn : 'Start'
   }]);
-   
+
   const [currentMove, setCurrentMove] = useState(0);
   const current = history[currentMove];
   const currentSquares = current ? current.squares : initialChessBoard;
   const currentPlayer = currentMove % 2 === 0 ? 'white' : 'black';
 
-  function handleMove(nextSquares, newEnPassantTarget, lastDoubleStepPawn, 
-    from, to, capturedPiece, isEnPassant) {
+  function handleMove(nextSquares,
+    from, to, captured, isEnPassant) {
     const pgn = PgnNotation.getMoveNotation(
       from, 
       to, 
       currentSquares[from], 
-      capturedPiece,
+      captured,
       isEnPassant
     );
-    
+
     const nextHistory = [...history.slice(0, currentMove + 1), {
       squares: nextSquares,
-      enPassantTarget: newEnPassantTarget,
-      lastDoubleStepPawn: lastDoubleStepPawn,
       pgn: pgn
     }];
-    
+    if (isEnPassant) {
+      nextHistory[captured] = '';
+    }
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   }
@@ -51,11 +49,10 @@ export default function Game() {
     setCurrentMove(nextMove);
   }
   const moves = [];
-  if (history.length > 2)
+  if (history.length >= 2)
   for (let i = 1; i < history.length; i += 2) {
     const whiteMove = history[i];
     const blackMove = history[i + 1];
-    const moveNumber = (i-1) / 2 + 1;
 
     let description = ``;
     if (whiteMove && whiteMove.pgn && whiteMove.pgn !== 'Start') {
@@ -82,8 +79,7 @@ return (
             currentPlayer={currentPlayer}
             squares={currentSquares}
             onMove={handleMove} 
-            enPassantTarget={current? current.enPassantTarget : null}
-            lastDoubleStepPawn={current? current.lastDoubleStepPawn : null} />
+             />
         </div>
         <div className="game-info">
           <div className="status">to move : <span>{currentPlayer}</span></div>

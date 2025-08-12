@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { Square } from './Square';
 import Entity from './logic/Entity';
 
-export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDoubleStepPawn }) {
+export function Board({ currentPlayer, squares, onMove }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [lastMovedSquare, setLastMovedSquare] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [isOpponentPiece, setIsOpponentPiece] = useState(false);
+  // to track en passant target square from previous move
+  const [enPassantTarget, setEnPassantTarget] = useState(null);
 
   function handleMouseEnter(i) {
-    if (squares[i]) {
+    if (squares[i] && !selectedSquare) {
       setIsOpponentPiece(Entity.getColorByEntity(squares[i]) !== currentPlayer);
       setValidMoves(getAllValidMoves(i));
     }
@@ -34,7 +36,8 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
     return moves;
   }
 
-
+  // Check if the move is valid
+  // ! and return the entity if valid, or else false
   function isValidMove(from, to) {
     if (from === to) return false;
 
@@ -49,58 +52,79 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
     }
 
     // Ask entity type obj if the move is valid
-    const isValid = (Entity.fromChar(entityChar, from, squares)).isValidMove(to);
-
-    return isValid;
+    const entity = Entity.fromChar(entityChar, from, squares, enPassantTarget)
+    if (!entity) {
+      console.error(`Entity not found for char: ${entityChar}`);
+      return false;
+    }
+    if (entity.isValidMove(to)) {
+      return entity;
+    } else {
+      return false;
+    }
   }
 
 
-  function handleClick(i) {
+  function handleClick(clickedSquareIndex) {
     if (selectedSquare !== null) {
-      if (isValidMove(selectedSquare, i)) {
+      var entity = isValidMove(selectedSquare, clickedSquareIndex);
+      if (entity) {
         const newSquares = [...squares];
         const entityChar = squares[selectedSquare];
         const entityType = entityChar.toLowerCase();
         const entityColor = Entity.getColorByEntity(entityChar);
+        let capturedPiece = null;
 
-        newSquares[i] = entityChar;
+        // Move the entity : default behavior
+        newSquares[clickedSquareIndex] = entityChar;
         newSquares[selectedSquare] = '';
 
-        let newEnPassantTarget = null;
-        let newLastDoubleStepPawn = null;
+        // Handle special cases for Pawn
+        if (entityType === 'p') {
+          const direction = entityColor === 'white' ? 1 : -1;        
+          var enPassantTarget = clickedSquareIndex + 8 * direction;
+          let capturedIndex = enPassantTarget - (8 * direction);
 
-        let capturedPiece = null;
-        let isEnPassant = false;
+          if (entity.isDoubleStep(clickedSquareIndex)) {
+            // double step : save en passant target for next move
+            setEnPassantTarget(enPassantTarget);
+          }
+          else {
+            // reset en passant target
+            setEnPassantTarget(null);
+          }
+          if (entity.isEnPassant(clickedSquareIndex)) {
+            // we take the pawn up one raw
+            capturedIndex = clickedSquareIndex + 8 * direction;
+            capturedPiece = squares[capturedIndex];
+            newSquares[capturedIndex] = '';
+          }else {
+            if (squares[clickedSquareIndex] !== '')
+               capturedPiece = squares[clickedSquareIndex];
+          }
 
-        if (entityType === 'p' && enPassantTarget !== null
-          && i === enPassantTarget) {
-
-          const direction = entityColor === 'white' ? -1 : 1;
-          const captureRow = Math.floor(i / 8) - direction;
-          const capturedIndex = captureRow * 8 + (i % 8);
-
-          capturedPiece = squares[capturedIndex];
-          isEnPassant = true;
-        } else if (squares[i] !== '') {
-          capturedPiece = squares[i];
+        } else if (squares[clickedSquareIndex] !== '') {
+          // capture an entity : default behavior
+          capturedPiece = squares[clickedSquareIndex];
+          setEnPassantTarget(null);
         }
+
 
         onMove(
           newSquares,
-          newEnPassantTarget,
-          newLastDoubleStepPawn,
           selectedSquare,
-          i,
+          clickedSquareIndex,
           capturedPiece,
-          isEnPassant
+          entity && entity.isEnPassant(clickedSquareIndex)
         );
-        setLastMovedSquare(i);
+        setLastMovedSquare(clickedSquareIndex);
       }
       setSelectedSquare(null);
       setValidMoves([]);
-    } else if (squares[i] && Entity.getColorByEntity(squares[i]) === currentPlayer) {
-      setSelectedSquare(i);
-      setValidMoves(getAllValidMoves(i));
+    } else if (squares[clickedSquareIndex] &&
+      Entity.getColorByEntity(squares[clickedSquareIndex]) === currentPlayer) {
+      setSelectedSquare(clickedSquareIndex);
+      setValidMoves(getAllValidMoves(clickedSquareIndex));
     }
   }
 
@@ -115,6 +139,7 @@ export function Board({ currentPlayer, squares, onMove, enPassantTarget, lastDou
             return (
               <Square
                 key={squareIndex}
+                squareIndex={squareIndex}
                 value={squares[squareIndex]}
                 isSelected={selectedSquare === squareIndex}
                 isAnimated={lastMovedSquare === squareIndex}

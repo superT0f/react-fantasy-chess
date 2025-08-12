@@ -1,4 +1,21 @@
 export default class PgnNotation {
+  
+  static getLetter(idx) {
+    const columns = 'abcdefgh';
+    const col = columns[idx % 8];
+
+    return col;
+  }
+
+  static idxToXY(idx) {
+    return PgnNotation.getLetter(idx) + PgnNotation.getNumber(idx) ;
+  }
+
+  static getNumber(idx) {
+    const row = 8 - Math.floor(idx / 8);
+
+    return row;
+  }
   static getMoveNotation(from, to, piece, captured, isEnPassant = false) {
     if (!piece) return "";
     const pieceType = piece.toLowerCase();
@@ -20,7 +37,7 @@ export default class PgnNotation {
     const captureSymbol = captured ? 'x' : '';
     const enPassantSuffix = isEnPassant ? ' e.p.' : '';
     
-    if (pieceType === 'p') {
+    if (pieceType === 'p' && !captured && !isEnPassant) {
       return `${toCol}${toRow}`;
     }
     else {

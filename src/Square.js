@@ -1,7 +1,9 @@
 import Entity from './components/Entity';
+import PgnNotation from './logic/PgnNotation';
 
 export function Square({ 
-  value, 
+  value,
+  squareIndex,
   isSelected, 
   onSquareClick, 
   onMouseEnter, 
@@ -10,8 +12,11 @@ export function Square({
   isOpponentPiece,
   isEnPassantTarget
 }) {
-  const indicator = isOpponentPiece ? "move-indicator-opponent" : "move-indicator";
-
+  const row = Math.floor(squareIndex / 8);
+  const col = squareIndex % 8;
+  
+  const isPositionsBottom = row == 7;
+  const isPositionsRight = col == 7;
   return (
     <button 
       className={`square 
@@ -23,9 +28,12 @@ export function Square({
       onClick={onSquareClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-    >
+    > 
+      { isPositionsBottom &&
+      <div className="positions bottom"> {PgnNotation.getLetter(squareIndex)}</div>}
+      { isPositionsRight &&
+      <div className="positions right"> {PgnNotation.getNumber(squareIndex)}</div>}
       <Entity entity={value} />
-      {/* {isValidMove && <div className={indicator}></div>} */}
     </button>
   );
 }

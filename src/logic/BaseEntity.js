@@ -1,5 +1,6 @@
 export default class BaseEntity {
-  constructor(type, color, position, squares, enPassantTarget = null, lastDoubleStepPawn = null) {
+  constructor(type, color, position, squares,
+    enPassantTarget = null, lastDoubleStepPawn = null) {
     this.type = type.toLowerCase();
     this.color = color;
     this.position = position;
@@ -11,7 +12,7 @@ export default class BaseEntity {
     this.lastDoubleStepPawn = lastDoubleStepPawn;
   }
 
-    isPathClear(to) {
+  isPathClear(to) {
     if (this.type === 'n') return true;
 
     const toRow = Math.floor(to / 8);
@@ -44,6 +45,17 @@ export default class BaseEntity {
     };
 
     return this.color === 'white' ? symbols[this.type].toUpperCase() : symbols[this.type];
+  }
+
+  isEnPassant(to) {
+    // En Passant is a special pawn move, so only pawns can perform it
+    // @see Implementation in Pawn subclasses
+    return false;
+  }
+
+  isValidMove(to) {
+    // @see Implementation in subclasses
+    throw new Error('isValidMove must be implemented in subclasses');
   }
 
 }
