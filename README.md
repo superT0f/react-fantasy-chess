@@ -22,6 +22,7 @@ A modern chess game implementation built with React, featuring classic chess rul
 │ │ ├── BaseEntity.js       # Base chess class
 │ │ ├── Entity.js           # factory + utilities
 │ │ ├── pieces/             # Individual piece implementations
+│ │ ├── Pawn.js             # Pawn implementation
 │ │ └── PgnNotation.js      # Move notation handling
 │ ├── Board.js              # Chess board component
 │ ├── Game.js               # Main game logic component
