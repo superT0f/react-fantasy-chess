@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Board } from './Board';
 import PgnNotation from './logic/PgnNotation';
+import Entity from './logic/Entity';
 
 export default function Game() {
   const initialChessBoard = [
@@ -33,7 +34,9 @@ export default function Game() {
       captured,
       isEnPassant
     );
-
+    if (Entity.isCheck(nextSquares, currentPlayer)) {
+      return;
+    }
     const nextHistory = [...history.slice(0, currentMove + 1), {
       squares: nextSquares,
       pgn: pgn
@@ -44,6 +47,8 @@ export default function Game() {
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   }
+
+
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);

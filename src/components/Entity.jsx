@@ -1,4 +1,4 @@
-const Entity = ({ entity }) => {
+const EntityUI = ({ entity }) => {
   if (!entity) return null;
   
   const color = entity === entity.toUpperCase() ? 'w' : 'b';
@@ -23,4 +23,4 @@ const Entity = ({ entity }) => {
   }
 };
 
-export default Entity;
+export default EntityUI;

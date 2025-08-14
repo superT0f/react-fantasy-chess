@@ -57,5 +57,4 @@ export default class BaseEntity {
     // @see Implementation in subclasses
     throw new Error('isValidMove must be implemented in subclasses');
   }
-
 }

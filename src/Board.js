@@ -58,12 +58,24 @@ export function Board({ currentPlayer, squares, onMove }) {
       return false;
     }
     if (entity.isValidMove(to)) {
+      // Simulate the move to check if it puts the king in check
+      const simulatedBoard = simulateMove(squares, from, to);
+      if (Entity.isCheck(simulatedBoard, currentPlayer)) {
+        return false;
+      }
       return entity;
+
     } else {
       return false;
     }
   }
 
+  function simulateMove(squares, from, to) {
+    const newSquares = [...squares];
+    newSquares[to] = newSquares[from];
+    newSquares[from] = '';
+    return newSquares;
+  }
 
   function handleClick(clickedSquareIndex) {
     if (selectedSquare !== null) {
@@ -81,7 +93,7 @@ export function Board({ currentPlayer, squares, onMove }) {
 
         // Handle special cases for Pawn
         if (entityType === 'p') {
-          const direction = entityColor === 'white' ? 1 : -1;        
+          const direction = entityColor === 'white' ? 1 : -1;
           var enPassantTarget = clickedSquareIndex + 8 * direction;
           let capturedIndex = enPassantTarget - (8 * direction);
 
@@ -98,9 +110,9 @@ export function Board({ currentPlayer, squares, onMove }) {
             capturedIndex = clickedSquareIndex + 8 * direction;
             capturedPiece = squares[capturedIndex];
             newSquares[capturedIndex] = '';
-          }else {
+          } else {
             if (squares[clickedSquareIndex] !== '')
-               capturedPiece = squares[clickedSquareIndex];
+              capturedPiece = squares[clickedSquareIndex];
           }
 
         } else if (squares[clickedSquareIndex] !== '') {
@@ -136,17 +148,23 @@ export function Board({ currentPlayer, squares, onMove }) {
           {Array(8).fill(null).map((_, col) => {
             const squareIndex = row * 8 + col;
             var isValidMove = validMoves.includes(squareIndex);
+            const entityChar = squares[squareIndex];
+            const isKingInCheck = entityChar && entityChar.toLowerCase() === 'k' &&
+              Entity.isCheck(squares, currentPlayer) &&
+              Entity.getColorByEntity(entityChar) === currentPlayer;
+
             return (
               <Square
                 key={squareIndex}
                 squareIndex={squareIndex}
                 value={squares[squareIndex]}
-                isSelected={selectedSquare === squareIndex}
-                isAnimated={lastMovedSquare === squareIndex}
                 onSquareClick={() => handleClick(squareIndex)}
                 onMouseEnter={() => handleMouseEnter(squareIndex)}
                 onMouseLeave={() => handleMouseLeave(selectedSquare !== null)}
+                isSelected={selectedSquare === squareIndex}
                 isValidMove={isValidMove}
+                isKingInCheck={isKingInCheck}
+                isAnimated={lastMovedSquare === squareIndex}
                 isOpponentPiece={isOpponentPiece}
               />
             );

@@ -52,5 +52,22 @@ export default class Entity extends BaseEntity {
     this.fromCol = this.position % 8;
   }
 
+  static isCheck(squares, player) {
+    const kingChar = player === 'white' ? 'K' : 'k';
+    const kingPosition = squares.indexOf(kingChar);
 
+    if (kingPosition === -1) return false; // should not happen, but just in case
+
+    // verify if any opponent can attack the king
+    for (let i = 0; i < 64; i++) {
+      const piece = squares[i];
+      if (piece && Entity.getColorByEntity(piece) !== player) {
+        const entity = Entity.fromChar(piece, i, squares);
+        if (entity && entity.isValidMove(kingPosition)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }
