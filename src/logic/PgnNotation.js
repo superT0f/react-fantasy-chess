@@ -1,5 +1,5 @@
 export default class PgnNotation {
-  
+
   static getLetter(idx) {
     const columns = 'abcdefgh';
     const col = columns[idx % 8];
@@ -8,7 +8,7 @@ export default class PgnNotation {
   }
 
   static idxToXY(idx) {
-    return PgnNotation.getLetter(idx) + PgnNotation.getNumber(idx) ;
+    return PgnNotation.getLetter(idx) + PgnNotation.getNumber(idx);
   }
 
   static getNumber(idx) {
@@ -16,33 +16,39 @@ export default class PgnNotation {
 
     return row;
   }
-  static getMoveNotation(from, to, piece, captured, isEnPassant = false) {
-    if (!piece) return "";
-    const pieceType = piece.toLowerCase();
+  static getMoveNotation(from, to, entity, captured, isEnPassant = false, isCheck = false, isCheckmate = false) {
+    if (!entity) return " ".repeat(10);
+
+    const entityType = entity.toLowerCase();
     const columns = 'abcdefgh';
     const fromCol = columns[from % 8];
     const fromRow = 8 - Math.floor(from / 8);
     const toCol = columns[to % 8];
     const toRow = 8 - Math.floor(to / 8);
 
-    let pieceSymbol = '';
-    switch (pieceType) {
-      case 'r': pieceSymbol = 'R'; break;
-      case 'n': pieceSymbol = 'N'; break;
-      case 'b': pieceSymbol = 'B'; break;
-      case 'q': pieceSymbol = 'Q'; break;
-      case 'k': pieceSymbol = 'K'; break;
+    // Unicode
+    const entitySymbols = {
+      'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '',
+      'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': ''
+    };
+
+    let notation = '';
+
+    if (entityType !== 'p') {
+      notation += entitySymbols[entity] || entity.toUpperCase();
     }
 
-    const captureSymbol = captured ? 'x' : '';
-    const enPassantSuffix = isEnPassant ? ' e.p.' : '';
-    
-    if (pieceType === 'p' && !captured && !isEnPassant) {
-      return `${toCol}${toRow}`;
-    }
-    else {
-      return `${pieceSymbol}${fromCol}${fromRow}${captureSymbol}${toCol}${toRow}${enPassantSuffix}`;
+    if (captured && entityType !== 'p') {
+      notation += fromCol;
     }
 
+    notation += captured ? 'x' : '';
+    notation += toCol + toRow;
+
+    if (isEnPassant) notation += ' e.p.';
+    if (isCheckmate) notation += '#';
+    else if (isCheck) notation += '+';
+
+    return notation.padEnd(10, ' ');
   }
 }

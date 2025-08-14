@@ -3,15 +3,15 @@ import { Square } from './Square';
 import Entity from './logic/Entity';
 import PgnNotation from './logic/PgnNotation';
 
-export function Board({ currentPlayer, squares, onMove , lastMove }) {
+export function Board({ currentPlayer, squares, onMove, gameStatus, lastMove }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [lastMovedSquare, setLastMovedSquare] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
   const [isOpponentPiece, setIsOpponentPiece] = useState(false);
   // to track en passant target square from previous move
   const [enPassantTarget, setEnPassantTarget] = useState(null);
-
   function handleMouseEnter(i) {
+    if (gameStatus !== 'playing') return;
     if (squares[i] && !selectedSquare) {
       setIsOpponentPiece(Entity.getColorByEntity(squares[i]) !== currentPlayer);
       setValidMoves(getAllValidMoves(i));
@@ -37,8 +37,10 @@ export function Board({ currentPlayer, squares, onMove , lastMove }) {
     return moves;
   }
 
-  // Check if the move is valid
-  // ! and return the entity if valid, or else false
+  /** Check if the move is valid
+   * @todo : refactor the return value
+   * /!\ : return the entity if valid, or else false
+   **/
   function isValidMove(from, to) {
     if (from === to) return false;
 
@@ -79,6 +81,7 @@ export function Board({ currentPlayer, squares, onMove , lastMove }) {
   }
 
   function handleClick(clickedSquareIndex) {
+    if (gameStatus !== 'playing') return;
     if (selectedSquare !== null) {
       var entity = isValidMove(selectedSquare, clickedSquareIndex);
       if (entity) {

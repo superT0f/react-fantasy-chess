@@ -1,3 +1,6 @@
+import Entity from './Entity';
+import PgnNotation from './PgnNotation';
+
 export default class BaseEntity {
   constructor(type, color, position, squares,
     enPassantTarget = null, lastDoubleStepPawn = null) {
@@ -31,7 +34,12 @@ export default class BaseEntity {
       currentRow += rowStep;
       currentCol += colStep;
     }
-    return true;
+    // return true;
+    console.log(`Path clear from ${PgnNotation.idxToXY(this.fromRow * 8 + this.fromCol)} to ${PgnNotation.idxToXY(to)}`);
+    console.log(`${Entity.getColorByEntity(this.squares[to])} VS ${this.color}`);
+
+    return this.squares[to] === '' ||
+      Entity.getColorByEntity(this.squares[to]) !== this.color;
   }
 
   getSymbol() {

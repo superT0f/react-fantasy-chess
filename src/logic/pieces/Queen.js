@@ -6,7 +6,10 @@ export default class Queen extends BaseEntity {
     const toCol = to % 8;
     const rowDiff = Math.abs(toRow - this.fromRow);
     const colDiff = Math.abs(toCol - this.fromCol);
-    return this.isPathClear(to) &&
-          (this.fromRow === toRow || this.fromCol === toCol || rowDiff === colDiff);
+    let isValid = false;
+    if (this.isPathClear(to)) {
+      isValid = (this.fromRow === toRow || this.fromCol === toCol || rowDiff === colDiff);
+    }
+    return isValid;
   }
 }

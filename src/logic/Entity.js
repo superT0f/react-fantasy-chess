@@ -6,6 +6,7 @@ import Bishop from "./pieces/Bishop";
 import Queen from "./pieces/Queen";
 import King from "./pieces/King";
 import BaseEntity from './BaseEntity';
+import PgnNotation from "./PgnNotation";
 
 export default class Entity extends BaseEntity {
   static getColorByEntity(entity) {
@@ -69,5 +70,56 @@ export default class Entity extends BaseEntity {
       }
     }
     return false;
+  }
+  static isStalemate(squares, player) {
+    if (Entity.isCheck(squares, player)) return false;
+
+    for (let from = 0; from < 64; from++) {
+      const piece = squares[from];
+      if (piece && Entity.getColorByEntity(piece) === player) {
+        const entity = Entity.fromChar(piece, from, squares);
+        for (let to = 0; to < 64; to++) {
+          if (entity.isValidMove(to)) {
+            const simulatedBoard = Entity.simulateMove(squares, from, to);
+            if (!Entity.isCheck(simulatedBoard, player)) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+  static isCheckmate(squares, player) {
+    if (!this.isCheck(squares, player)) return false;
+
+    // check but is there any legal move?
+    for (let from = 0; from < 64; from++) {
+      const piece = squares[from];
+      if (piece && this.getColorByEntity(piece) === player) {
+        const entity = this.fromChar(piece, from, squares);
+
+        for (let to = 0; to < 64; to++) {
+          if (entity.isValidMove(to)) {
+            const simulatedBoard = this.simulateMove(squares, from, to);
+            if (!this.isCheck(simulatedBoard, player)) {
+              console.log(`Legal move found for ${player} from ${PgnNotation.idxToXY(from)} to ${PgnNotation.idxToXY(to)}`);
+              console.log('Simulated board:', simulatedBoard);
+              console.log('Current squares:', squares);
+              return false; // at least one legal move found
+            }
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  static simulateMove(squares, from, to) {
+    const newSquares = [...squares];
+    newSquares[to] = newSquares[from];
+    newSquares[from] = '';
+    return newSquares;
   }
 }

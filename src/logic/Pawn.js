@@ -7,10 +7,10 @@ export default class Pawn extends BaseEntity {
   constructor(type, color, position, squares, enPassantTarget) {
     super(type, color, position, squares);
     this.enPassantTarget = enPassantTarget;
-    }
+  }
   isValidMove(to) {
     const from = this.position;
-    
+
     const fromRow = Math.floor(from / 8);
     const fromCol = from % 8;
     const toRow = Math.floor(to / 8);
@@ -28,16 +28,14 @@ export default class Pawn extends BaseEntity {
       if (fromRow === startRow &&
         toRow === fromRow + 2 * direction &&
         this.squares[to] === '' &&
-        this.isPathClear(to)){
-          // var enPassantTarget = to - 8 * direction;
-          // this.setEnPassantTarget(enPassantTarget);
-          return true;
-        }
+        this.isPathClear(to)) {
+        return true;
+      }
     }
 
     if (colDiff === 1 && rowDiff === 1 && fromRow !== startRow &&
       this.enPassantTarget === to) {
-    
+
       return true;
     }
 
@@ -73,11 +71,9 @@ export default class Pawn extends BaseEntity {
 
   isDoubleStep(to) {
     const toRow = Math.floor(to / 8);
-    const doubleStep = (this.isStartingPosition() && 
-        Math.abs(toRow - Math.floor(this.position / 8)) === 2);
+    const doubleStep = (this.isStartingPosition() &&
+      Math.abs(toRow - Math.floor(this.position / 8)) === 2);
 
     return doubleStep;
   }
-
-
 }

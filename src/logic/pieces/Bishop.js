@@ -8,6 +8,6 @@ export default class Bishop extends BaseEntity {
     const colDiff = Math.abs(toCol - this.fromCol);
 
     return this.isPathClear(to) &&
-          rowDiff === colDiff;
+      rowDiff === colDiff;
   }
 }

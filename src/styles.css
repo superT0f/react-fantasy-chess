@@ -65,9 +65,17 @@ body {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Square colors */
@@ -90,25 +98,78 @@ body {
   transition: background-color 0.3s ease;
 }
 
+
+/* timer stuff */
+.timer-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+  font-family: 'Cinzel', serif;
+}
+
+.timer {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.timer.white {
+  border-left: 5px solid white;
+}
+
+.timer.black {
+  border-left: 5px solid black;
+}
+
+.timer.active {
+  border: 5px solid rgba(90, 241, 85, 0.473);
+  transform: scale(1.05);
+}
+
+.timer.low-time {
+  color: #ff5555;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+
 /* ===== Entity Styles ===== */
 .chess-entity {
   display: block;
-  width: 50%;
-  height: 150%;
+  width: 80%;
   object-fit: contain;
 }
 
 .move-indicator-opponent {
   background-color: none;
-  border : 2px solid var(--highlight-capture) !important;
+  border: 2px solid var(--highlight-capture) !important;
   z-index: 5;
   opacity: 0.8;
 }
 
 .move-indicator {
-  background-color: var(--highlight-move)!important;
-  
-  border : 2px solid var(--highlight-capture) !important;
+  background-color: var(--highlight-move) !important;
+
+  border: 2px solid var(--highlight-capture) !important;
   z-index: 5;
   opacity: 0.8;
 }
@@ -181,6 +242,8 @@ body {
   padding: 5px;
   width: 100%;
   transition: background-color 0.2s;
+  font-size: larger;
+  font-family: mono;
 }
 
 .move:hover {
@@ -191,19 +254,22 @@ body {
   margin-top: 25px;
   padding: 5px;
   text-align: center;
-  
+
   color: var(--text-secondary);
   font-size: 0.8em;
   background-color: rgba(0, 0, 0, 0.5);
   width: 100%;
 }
+
 .footer a {
   color: var(--gold-accent);
   text-decoration: none;
 }
+
 .footer a:hover {
   text-decoration: underline;
 }
+
 .footer .heart {
   color: red;
   font-weight: bold;
@@ -215,16 +281,82 @@ body {
   position: absolute;
   width: 10%;
   height: 10%;
-  align-items:first baseline;
+  align-items: first baseline;
   justify-content: center;
   color: var(--text-secondary);
   text-shadow: #31a326 0px 0px 5px;
 }
+
 .positions.right {
   right: -12px;
 }
+
 .positions.bottom {
   bottom: -6px;
+}
+
+
+/* Styles pour le message de victoire */
+.victory-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2rem;
+  border-radius: 15px;
+  border: 3px solid #d4af37;
+  text-align: center;
+  z-index: 100;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.7);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.victory-text {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  color: #d4af37;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+}
+
+.victory-emoji {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.play-again {
+  background: linear-gradient(to right, #d4af37, #f9e076);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.play-again:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+}
+
+/* Style pour le plateau désactivé en fin de partie */
+.game-over .square {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 /* Responsive Design */
@@ -254,13 +386,13 @@ body {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .game-info {
     width: 100%;
     max-width: 480px;
     max-height: 200px;
   }
-  
+
   .square {
     width: 11vw;
     height: 11vw;
@@ -273,7 +405,7 @@ body {
   body {
     padding: 10px;
   }
-  
+
   .square {
     width: 12vw;
     height: 12vw;
