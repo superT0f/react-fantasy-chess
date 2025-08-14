@@ -34,10 +34,7 @@ export default class BaseEntity {
       currentRow += rowStep;
       currentCol += colStep;
     }
-    // return true;
-    console.log(`Path clear from ${PgnNotation.idxToXY(this.fromRow * 8 + this.fromCol)} to ${PgnNotation.idxToXY(to)}`);
-    console.log(`${Entity.getColorByEntity(this.squares[to])} VS ${this.color}`);
-
+    
     return this.squares[to] === '' ||
       Entity.getColorByEntity(this.squares[to]) !== this.color;
   }

@@ -51,4 +51,12 @@ export default class PgnNotation {
 
     return notation.padEnd(10, ' ');
   }
+  static xyToIdx(xy) {
+    const col = xy.charAt(0).toLowerCase();
+    const row = parseInt(xy.charAt(1));
+    const cols = 'abcdefgh';
+    const x = cols.indexOf(col);
+    const y = 8 - row;
+    return y * 8 + x;
+  }
 }

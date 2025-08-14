@@ -353,11 +353,77 @@ body {
   box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
 }
 
-/* Style pour le plateau désactivé en fin de partie */
 .game-over .square {
   opacity: 0.7;
   pointer-events: none;
 }
+
+
+.mode-selection {
+  display: contents;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2rem;
+  border-radius: 15px;
+  border: 3px solid #d4af37;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.7);
+}
+
+.mode-selection h2 {
+  font-family: 'Cinzel', serif;
+  color: #d4af37;
+  margin-bottom: 1.5rem;
+}
+
+.mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mode-options button {
+  background: linear-gradient(to right, #d4af37, #f9e076);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.mode-options button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+}
+
+.ai-difficulty {
+  margin-top: 1.5rem;
+}
+
+.ai-difficulty select {
+  padding: 0.5rem;
+  border-radius: 5px;
+  background: #333;
+  color: white;
+  border: 1px solid #d4af37;
+}
+
+.ai-thinking {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px 20px;
+  border-radius: 5px;
+  color: #d4af37;
+  font-family: 'Cinzel', serif;
+  z-index: 100;
+}
+
 
 /* Responsive Design */
 @media (min-width: 768px) {

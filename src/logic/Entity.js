@@ -93,7 +93,7 @@ export default class Entity extends BaseEntity {
   static isCheckmate(squares, player) {
     if (!this.isCheck(squares, player)) return false;
 
-    // check but is there any legal move?
+    // check is there any legal move?
     for (let from = 0; from < 64; from++) {
       const piece = squares[from];
       if (piece && this.getColorByEntity(piece) === player) {
@@ -103,9 +103,6 @@ export default class Entity extends BaseEntity {
           if (entity.isValidMove(to)) {
             const simulatedBoard = this.simulateMove(squares, from, to);
             if (!this.isCheck(simulatedBoard, player)) {
-              console.log(`Legal move found for ${player} from ${PgnNotation.idxToXY(from)} to ${PgnNotation.idxToXY(to)}`);
-              console.log('Simulated board:', simulatedBoard);
-              console.log('Current squares:', squares);
               return false; // at least one legal move found
             }
           }

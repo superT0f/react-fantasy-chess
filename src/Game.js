@@ -2,8 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Board } from './Board';
 import PgnNotation from './logic/PgnNotation';
 import Entity from './logic/Entity';
+import ChessAI from './logic/AI';
 
 export default function Game() {
+  const [gameMode, setGameMode] = useState(null); // null, 'pvp', 'ai'
+  const [aiDifficulty, setAiDifficulty] = useState('easy'); // 'easy', 'medium', 'hard'
+  const [isAiThinking, setIsAiThinking] = useState(false);
+
   const initialChessBoard = [
     'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
     'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
@@ -26,7 +31,7 @@ export default function Game() {
   const [lastMove, setLastMove] = useState(null);
   const current = history[currentMove];
   const currentSquares = current ? current.squares : initialChessBoard;
-  const currentPlayer = currentMove % 2 === 0 ? 'white' : 'black';
+  const [currentPlayer, setCurrentPlayer] = useState('white'); // 'white' or 'black'
 
   const [timeLeft, setTimeLeft] = useState({
     white: 600, // 10 min
@@ -61,6 +66,7 @@ export default function Game() {
     clearInterval(timerRef.current);
 
     timerRef.current = setInterval(() => {
+      if (gameStatus !== 'playing') return null;
       setTimeLeft(prev => {
         const newTime = { ...prev };
         newTime[currentPlayer] = Math.max(0, newTime[currentPlayer] - 1);
@@ -115,11 +121,10 @@ export default function Game() {
   }
 
   function handleMove(nextSquares,
-    from, to, captured, isEnPassant) {
+    from, to, captured, isEnPassant, isFromIA = false) {
+    const opponent = currentPlayer === 'white' ? 'black' : 'white';
 
     if (gameStatus !== 'playing') return false;
-
-    const opponent = currentPlayer === 'white' ? 'black' : 'white';
     const isOpponentInCheckmate = Entity.isCheckmate(nextSquares, opponent);
     const isOpponentInStalemate = !isOpponentInCheckmate &&
       Entity.isStalemate(nextSquares, opponent);
@@ -147,9 +152,7 @@ export default function Game() {
       Entity.isCheck(nextSquares, currentPlayer),
       isOpponentInCheckmate
     );
-    if (Entity.isCheck(nextSquares, currentPlayer)) {
-      return;
-    }
+
     const nextHistory = [...history.slice(0, currentMove + 1), {
       squares: nextSquares,
       pgn: pgn
@@ -167,13 +170,106 @@ export default function Game() {
       captured,
       notation: pgn
     });
+    if (gameMode === 'ai' &&
+      gameStatus === 'playing' &&
+      !isFromIA) {
+      setIsAiThinking(true);
+      setTimeout(() => {
+        if (makeAiMove(nextSquares)) {
+          setCurrentPlayer('white'); // Set to white after AI move
 
+        }
+        setIsAiThinking(false);
+      }, 1500);
+    } else {
+      setCurrentPlayer('black'); // Switch to opponent's turn
+    }
     return true;
   }
+
+  function makeAiMove(currentSquares) {
+    if (!currentSquares || gameStatus !== 'playing') return;
+    const move = ChessAI.getRandomMove(moves, currentSquares, 'black');
+    if (move) {
+      const { from, to } = move;
+
+      const entityChar = currentSquares[from];
+      const entity = Entity.fromChar(entityChar, from, currentSquares);
+      const captured = currentSquares[to] !== '' ? currentSquares[to] : null;
+      const isEnPassant = entity.isEnPassant(to);
+
+      const newSquares = [...currentSquares];
+      newSquares[to] = newSquares[from];
+      newSquares[from] = '';
+
+      if (isEnPassant) {
+        newSquares[(to + 8)] = '';
+      }
+      handleMove(
+        newSquares,
+        from,
+        to,
+        captured,
+        isEnPassant,
+        true // Indicate that this move is from AI
+      )
+      setCurrentPlayer('white'); // Set to white after AI move
+      return true;
+    }
+  }
+
+  function startNewGame(mode) {
+    setGameMode(mode);
+    setGameStatus('playing');
+    setHistory([{
+      squares: initialChessBoard,
+      pgn: 'Start'
+    }]);
+    setCurrentMove(0);
+    setTimeLeft({
+      white: 600,
+      black: 600
+    });
+    setWinner(null);
+  }
+
+  function GameModeSelection() {
+    if (gameMode !== null) return null;
+
+    return (
+      <div className="mode-selection">
+        <h2>Select Game Mode</h2>
+        <div className="mode-options">
+          <button onClick={() => startNewGame('ai')}>
+            Play vs AI
+          </button>
+          <button onClick={() => startNewGame('pvp')}>
+            locale two players
+          </button>
+        </div>
+        {gameMode === 'ai' && (
+          <div className="ai-difficulty">
+            <h3>Select AI Difficulty</h3>
+            <select
+              value={aiDifficulty}
+              onChange={(e) => setAiDifficulty(e.target.value)}
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
   }
+
   const moves = [];
   if (history.length >= 2)
     for (let i = 1; i < history.length; i += 2) {
@@ -197,31 +293,39 @@ export default function Game() {
 
   return (
     <div className="game">
-      <VictoryMessage />
-      <div className="board-container">
-        <div className="timer-container">
-          <div className={`timer white ${currentPlayer === 'white' ? 'active' : ''}`}>
-            White: {formatTime(timeLeft.white)}
+      {gameMode === null ? (
+        <GameModeSelection />
+      ) : (
+        <>
+          <VictoryMessage />
+          {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
+
+          <div className="board-container">
+            <div className="timer-container">
+              <div className={`timer white ${currentPlayer === 'white' ? 'active' : ''}`}>
+                White: {formatTime(timeLeft.white)}
+              </div>
+              <div className={`timer black ${currentPlayer === 'black' ? 'active' : ''}`}>
+                Black: {formatTime(timeLeft.black)}
+              </div>
+            </div>
+            <div className="game-content">
+              <div className="game-board">
+                <Board
+                  currentPlayer={currentPlayer}
+                  squares={currentSquares}
+                  onMove={handleMove}
+                  lastMove={lastMove}
+                  gameStatus={gameStatus}
+                />
+              </div>
+              <div className="game-info">
+                <ol>{moves}</ol>
+              </div>
+            </div>
           </div>
-          <div className={`timer black ${currentPlayer === 'black' ? 'active' : ''}`}>
-            Black: {formatTime(timeLeft.black)}
-          </div>
-        </div>
-        <div className="game-content">
-          <div className="game-board">
-            <Board
-              currentPlayer={currentPlayer}
-              squares={currentSquares}
-              onMove={handleMove}
-              lastMove={lastMove}
-              gameStatus={gameStatus}
-            />
-          </div>
-          <div className="game-info">
-            <ol>{moves}</ol>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
