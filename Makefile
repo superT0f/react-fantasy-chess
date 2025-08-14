@@ -5,6 +5,9 @@ help:
 	@echo "make prod		build for production env"
 	@echo "make dev		serve for dev env"
 	@echo "make bump		update version in package.json based on git revision"
+	@echo "make mount		mount Gandi to ./production"
+	@echo "make umount		unmount Gandi from ./production"
+	@echo "make ingest		ingest content from git to build folder"
 
 clean:
 	rm -Rf build/*
