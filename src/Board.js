@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Square } from './Square';
 import Entity from './logic/Entity';
+import PgnNotation from './logic/PgnNotation';
 
-export function Board({ currentPlayer, squares, onMove }) {
+export function Board({ currentPlayer, squares, onMove , lastMove }) {
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [lastMovedSquare, setLastMovedSquare] = useState(null);
   const [validMoves, setValidMoves] = useState([]);
@@ -153,6 +154,9 @@ export function Board({ currentPlayer, squares, onMove }) {
               Entity.isCheck(squares, currentPlayer) &&
               Entity.getColorByEntity(entityChar) === currentPlayer;
 
+            const isLastMoveFrom = lastMove?.from === PgnNotation.idxToXY(squareIndex);
+            const isLastMoveTo = lastMove?.to === PgnNotation.idxToXY(squareIndex);
+
             return (
               <Square
                 key={squareIndex}
@@ -166,6 +170,8 @@ export function Board({ currentPlayer, squares, onMove }) {
                 isKingInCheck={isKingInCheck}
                 isAnimated={lastMovedSquare === squareIndex}
                 isOpponentPiece={isOpponentPiece}
+                isLastMoveFrom={isLastMoveFrom}
+                isLastMoveTo={isLastMoveTo}
               />
             );
           })}

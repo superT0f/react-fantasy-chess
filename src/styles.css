@@ -53,6 +53,23 @@ body {
   transition: all 0.2s ease;
 }
 
+.last-move-from {
+  background-color: lightgrey !important;
+  border: 3px dashed var(--gold-accent) !important;
+}
+
+.last-move-to {
+  background-color: lightgrey !important;
+  border: 3px solid var(--gold-accent) !important;
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 /* Square colors */
 .board-row:nth-child(odd) .square:nth-child(even),
 .board-row:nth-child(even) .square:nth-child(odd) {
@@ -96,15 +113,6 @@ body {
   opacity: 0.8;
 }
 
-/* .valid-move {   
-    border-radius: 5%;
-    border: 5px dotted #31a326;
-    z-index: 4;
-    border-width: medium;
-} */
-
-
-
 .valid-move::after {
   content: '';
   position: absolute;
@@ -118,16 +126,6 @@ body {
   pointer-events: none;
 }
 
-
-/* Indicateur de mouvement valide */
-/* .move-indicator {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: rgba(0, 255, 0, 0.3);
-  border-radius: 50%;
-  z-index: 1;
-} */
 
 /* ===== Game Layout ===== */
 .game {

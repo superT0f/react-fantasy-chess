@@ -11,7 +11,9 @@ export function Square({
   isValidMove,
   isKingInCheck,
   isOpponentPiece,
-  isEnPassantTarget
+  isEnPassantTarget,
+  isLastMoveFrom,
+  isLastMoveTo,
 }) {
   const row = Math.floor(squareIndex / 8);
   const col = squareIndex % 8;
@@ -27,6 +29,8 @@ export function Square({
         ${isValidMove && !isOpponentPiece ? 'move-indicator' : ''}
         ${isKingInCheck ? 'check' : ''}
         ${isEnPassantTarget ? 'en-passant-target' : ''}
+        ${isLastMoveFrom ? 'last-move-from' : ''}
+        ${isLastMoveTo ? 'last-move-to' : ''}
         `}
       onClick={onSquareClick}
       onMouseEnter={onMouseEnter}

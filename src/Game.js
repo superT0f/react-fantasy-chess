@@ -21,6 +21,7 @@ export default function Game() {
   }]);
 
   const [currentMove, setCurrentMove] = useState(0);
+  const [lastMove, setLastMove] = useState(null);
   const current = history[currentMove];
   const currentSquares = current ? current.squares : initialChessBoard;
   const currentPlayer = currentMove % 2 === 0 ? 'white' : 'black';
@@ -41,11 +42,19 @@ export default function Game() {
       squares: nextSquares,
       pgn: pgn
     }];
+
     if (isEnPassant) {
       nextHistory[captured] = '';
     }
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
+    setLastMove({
+      from: PgnNotation.idxToXY(from),
+      to: PgnNotation.idxToXY(to),
+      piece: currentSquares[from],
+      captured,
+      notation: pgn
+    });
   }
 
 
@@ -83,7 +92,8 @@ return (
           <Board
             currentPlayer={currentPlayer}
             squares={currentSquares}
-            onMove={handleMove} 
+            onMove={handleMove}
+            lastMove={lastMove}
              />
         </div>
         <div className="game-info">
