@@ -1,6 +1,6 @@
 # Fantasy Chess - React Implementation
 
-![Fantasy Chess Screenshot](./screens/screenshot-2025-08-06.png)
+![Fantasy Chess Screenshot](./screens/screenshot-2025-08-15.png)
 
 A modern chess game implementation built with React, featuring classic chess rules with visual enhancements.
 
@@ -60,7 +60,7 @@ npm install
 3. Start development server:
 
 ```bash
-npm start
+make dev
 ```
 
 4. Available Scripts

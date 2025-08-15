@@ -2,7 +2,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const ThemeSelector = () => {
   const { theme, setTheme } = useTheme();
-  const themes = ['first-blood', 'hanna', 'mystical'];
+  const themes = ['first-blood', 'hanna', 'mystical', 'mystical-hd'];
 
   return (
     <div className="theme-selector">

@@ -1,0 +1,13 @@
+/* Theme mystique HD */
+.theme-mystical-hd .square img {
+  width: 90% !important;
+}
+.theme-mystical-hd .board-row:nth-child(odd) .square:nth-child(even),
+.theme-mystical-hd .board-row:nth-child(even) .square:nth-child(odd) {
+  background: linear-gradient(135deg, #a8edea, #fcfcfc) !important;
+}
+
+.theme-mystical-hd .board-row:nth-child(odd) .square:nth-child(odd),
+.theme-mystical-hd .board-row:nth-child(even) .square:nth-child(even) {
+  background: linear-gradient(135deg, #6f69a5, #b1f4cf) !important;
+}
