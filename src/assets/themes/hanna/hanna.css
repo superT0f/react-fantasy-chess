@@ -1,0 +1,10 @@
+
+.theme-hanna .board-row:nth-child(odd) .square:nth-child(even),
+.theme-hanna .board-row:nth-child(even) .square:nth-child(odd) {
+  background-color: #f7aa8c !important;
+}
+
+.theme-hanna .board-row:nth-child(odd) .square:nth-child(odd),
+.theme-hanna .board-row:nth-child(even) .square:nth-child(even) {
+  background-color: #1f9a9e !important;
+}

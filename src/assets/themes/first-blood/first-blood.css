@@ -1,0 +1,14 @@
+/* Premier theme : First Blood */
+.theme-first-blood .square img {
+  width: 55% !important;
+}
+
+.theme-first-blood .board-row:nth-child(odd) .square:nth-child(even),
+.theme-first-blood .board-row:nth-child(even) .square:nth-child(odd) {
+  background-color: #d9d9d9 !important;
+}
+
+.theme-first-blood .board-row:nth-child(odd) .square:nth-child(odd),
+.theme-first-blood .board-row:nth-child(even) .square:nth-child(even) {
+  background-color: #b13e3e !important;
+}

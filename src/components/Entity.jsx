@@ -1,9 +1,13 @@
+import React from 'react';
+import { useTheme } from '../context/ThemeContext';
+
 const EntityUI = ({ entity }) => {
+  const { theme } = useTheme();
+
   if (!entity) return null;
 
   const color = entity === entity.toUpperCase() ? 'w' : 'b';
   const entityType = entity.toLowerCase();
-  const theme = 'hanna'; // @see src/assets/themes/
   const entityMap = {
     'p': 'pawn',
     'r': 'rook',
@@ -19,7 +23,7 @@ const EntityUI = ({ entity }) => {
     const image = require(`../assets/themes/${theme}/${imageName}.png`);
     return <img src={image} alt={entity} className="chess-entity" />;
   } catch (e) {
-    console.error(`Image not found: ${imageName}`);
+    console.error(`Image not found: ${imageName} in theme ${theme}`);
     return entity;
   }
 };

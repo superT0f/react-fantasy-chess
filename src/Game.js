@@ -3,8 +3,12 @@ import { Board } from './Board';
 import PgnNotation from './logic/PgnNotation';
 import Entity from './logic/Entity';
 import ChessAI from './logic/AI';
+import { ThemeProvider } from './context/ThemeContext';
+import ThemeSelector from './components/ThemeSelector';
+import { useTheme } from './context/ThemeContext';
 
 export default function Game() {
+  const { theme } = useTheme();
   const [gameMode, setGameMode] = useState(null); // null, 'pvp', 'ai'
   const [aiDifficulty, setAiDifficulty] = useState('easy'); // 'easy', 'medium', 'hard'
   const [isAiThinking, setIsAiThinking] = useState(false);
@@ -290,42 +294,44 @@ export default function Game() {
         </li>
       );
     }
-
   return (
-    <div className="game">
-      {gameMode === null ? (
-        <GameModeSelection />
-      ) : (
-        <>
-          <VictoryMessage />
-          {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
+    <ThemeProvider>
+      <div className={`game theme-${localStorage.getItem('chessTheme') || theme}`}>
+        {gameMode === null ? (
+          <GameModeSelection />
+        ) : (
+          <>
+            <VictoryMessage />
+            {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
 
-          <div className="board-container">
-            <div className="timer-container">
-              <div className={`timer white ${currentPlayer === 'white' ? 'active' : ''}`}>
-                White: {formatTime(timeLeft.white)}
+            <div className="board-container">
+              <div className="timer-container">
+                <div className={`timer white ${currentPlayer === 'white' ? 'active' : ''}`}>
+                  White: {formatTime(timeLeft.white)}
+                </div>
+                <div className={`timer black ${currentPlayer === 'black' ? 'active' : ''}`}>
+                  Black: {formatTime(timeLeft.black)}
+                </div>
+                <ThemeSelector />
               </div>
-              <div className={`timer black ${currentPlayer === 'black' ? 'active' : ''}`}>
-                Black: {formatTime(timeLeft.black)}
+              <div className="game-content">
+                <div className="game-board">
+                  <Board
+                    currentPlayer={currentPlayer}
+                    squares={currentSquares}
+                    onMove={handleMove}
+                    lastMove={lastMove}
+                    gameStatus={gameStatus}
+                  />
+                </div>
+                <div className="game-info">
+                  <ol>{moves}</ol>
+                </div>
               </div>
             </div>
-            <div className="game-content">
-              <div className="game-board">
-                <Board
-                  currentPlayer={currentPlayer}
-                  squares={currentSquares}
-                  onMove={handleMove}
-                  lastMove={lastMove}
-                  gameStatus={gameStatus}
-                />
-              </div>
-              <div className="game-info">
-                <ol>{moves}</ol>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </ThemeProvider>
   );
 }
