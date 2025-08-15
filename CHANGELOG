@@ -1,0 +1,46 @@
+# 📜 Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [0.1.1]
+
+### ✨ New Features
+- **🎨 Themes**:
+  - Added `mystical-hd` theme with new assets
+  - New `mystical` theme with various improvements
+  - `classic` theme renamed to `first-blood`
+- **♟️ Gameplay**:
+  - Implemented basic AI functionality: random moves + booking
+  - Added game mode selection
+  - Enhanced chess game with themes, timer, and victory messages
+  - Added last move highlighting
+  - Implemented `isCheck` and integrated it into move validation
+  - Reworked and fixed en passant PGN handling
+- **🖥️ UI/UX**:
+  - Improved fantasy logo look & feel
+  - Separate styles for player/opponent move suggestions
+  - Enhanced selected square and valid move indicators
+  - Added basic footer
+
+### 🛠️ Improvements & Refactoring
+- 🔧 Split entity and base entity logic
+- ✏️ Improved global documentation
+- ♻️ Renamed "piece" to "entity" in codebase
+- 🏗️ Added production check, git ingest in Makefile
+- 📈 Added version bump command in Makefile
+
+### 🐛 Bug Fixes
+- 🧹 Removed misplaced theme files
+- ✍️ Fixed PGN move count display (now shows only once)
+- 🛠️ Fixed Makefile dev setup
+
+### 📚 Documentation
+- 📝 Updated README with new screenshot
+- 📖 Added Pawn implementation details
+- 📑 Completed Makefile help section
+
+## [Initial Release] - 2025-08-05
+
+### 🎉 Initial Commit
+- 🌱 Project initialization
+- 🔒 Added SAST configuration in `.gitlab-ci.yml`
