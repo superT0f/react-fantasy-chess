@@ -13,9 +13,9 @@ export function Board({ onMove, gameStatus, lastMove, referee }) {
   });
   const squares = referee.getCurrentBoard();
   const currentPlayer = referee.getCurrentPlayer();
-  
 
-    const handleClick = (squareIndex) => {
+
+  const handleClick = (squareIndex) => {
     if (gameStatus !== 'playing') return;
 
     const { newState, moveData } = referee.handleSquareClick(
@@ -33,19 +33,31 @@ export function Board({ onMove, gameStatus, lastMove, referee }) {
       newSquares[moveData.to] = newSquares[moveData.from];
       newSquares[moveData.from] = '';
 
+      if (moveData.isCastle) {
+        const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
+        const rookFromCol = direction === 1 ? 7 : 0;
+        const rookToCol = direction === 1 ? 5 : 3;
+        const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
+        const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
+
+        newSquares[rookTo] = newSquares[rookFrom];
+        newSquares[rookFrom] = '';
+      }
+
       onMove(
         newSquares,
         moveData.from,
         moveData.to,
         captured,
-        moveData.isEnPassant
+        moveData.isEnPassant,
+        moveData.isCastle
       );
     }
   };
-  
+
   const [lastMovedSquare, setLastMovedSquare] = useState(null);
-  
-  
+
+
   function handleMouseEnter(i) {
     if (gameStatus !== 'playing') return;
     if (squares[i] && !localState.selectedSquare) {
@@ -68,8 +80,8 @@ export function Board({ onMove, gameStatus, lastMove, referee }) {
         <div className="board-row" key={row}>
           {Array(8).fill(null).map((_, col) => {
             const squareIndex = row * 8 + col;
-            var isValidMove =  localState.validMoves.includes(squareIndex);
-            const entityChar =  referee.getSquare(squareIndex);
+            var isValidMove = localState.validMoves.includes(squareIndex);
+            const entityChar = referee.getSquare(squareIndex);
             const isKingInCheck = entityChar && entityChar.toLowerCase() === 'k' &&
               Entity.isCheck(referee.getCurrentBoard(), currentPlayer) &&
               Entity.getColorByEntity(entityChar) === currentPlayer;

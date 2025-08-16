@@ -38,7 +38,7 @@ export default class Referee {
   }
 
   getSquare(idx) {
-    return this.history[this.currentMoveIndex]?.squares? this.history[this.currentMoveIndex].squares[idx] : null;
+    return this.history[this.currentMoveIndex]?.squares ? this.history[this.currentMoveIndex].squares[idx] : null;
   }
 
   getLastMove() {
@@ -111,27 +111,32 @@ export default class Referee {
 
     if (selectedSquare !== null) {
       const entity = this.isValidMove(selectedSquare, squareIndex, squares, enPassantTarget);
-      
+
       if (entity) {
         newState.lastMovedSquare = squareIndex;
         newState.selectedSquare = null;
         newState.validMoves = [];
-        
+
+
+        const isCastle = entity.type === 'k' && Math.abs(selectedSquare % 8 - squareIndex % 8) === 2;
+
+
         return {
           newState,
           moveData: {
             from: selectedSquare,
             to: squareIndex,
             entity,
-            isEnPassant: entity.isEnPassant(squareIndex)
+            isEnPassant: entity.isEnPassant(squareIndex),
+            isCastle,
           }
         };
       } else {
         newState.selectedSquare = null;
         newState.validMoves = [];
       }
-    } else if (squares[squareIndex] && 
-               Entity.getColorByEntity(squares[squareIndex]) === this.turn) {
+    } else if (squares[squareIndex] &&
+      Entity.getColorByEntity(squares[squareIndex]) === this.turn) {
       newState.selectedSquare = squareIndex;
       newState.validMoves = this.getAllValidMoves(squareIndex, squares, enPassantTarget);
       newState.isOpponentPiece = false;
@@ -141,6 +146,20 @@ export default class Referee {
   }
 
   recordMove(squares, from, to, piece, captured, isEnPassant, isCheck, isCheckmate) {
+    let newSquares = [...squares];
+    const isCastle = piece.toLowerCase() === 'k' && Math.abs(from % 8 - to % 8) === 2;
+
+    if (isCastle) {
+      const direction = to % 8 > from % 8 ? 1 : -1;
+      const rookFromCol = direction === 1 ? 7 : 0;
+      const rookToCol = direction === 1 ? 5 : 3;
+      const rookFrom = Math.floor(from / 8) * 8 + rookFromCol;
+      const rookTo = Math.floor(from / 8) * 8 + rookToCol;
+
+      newSquares[rookTo] = newSquares[rookFrom];
+      newSquares[rookFrom] = '';
+    }
+
     const pgn = PgnNotation.getMoveNotation(
       from,
       to,
@@ -157,7 +176,8 @@ export default class Referee {
       from,
       to,
       piece,
-      captured
+      captured,
+      isCastle
     });
     this.currentMoveIndex++;
     this.turn = this.turn === 'white' ? 'black' : 'white';
