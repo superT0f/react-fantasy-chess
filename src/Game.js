@@ -6,11 +6,14 @@ import ChessAI from './logic/AI';
 import { ThemeProvider } from './context/ThemeContext';
 import ThemeSelector from './components/ThemeSelector';
 import { useTheme } from './context/ThemeContext';
+import Referee from './logic/Referee';
+
 
 export default function Game() {
   const { theme } = useTheme();
-  const [gameMode, setGameMode] = useState(null); // null, 'pvp', 'ai'
-  const [aiDifficulty, setAiDifficulty] = useState('easy'); // 'easy', 'medium', 'hard'
+  const [referee] = useState(new Referee());
+  const [gameMode, setGameMode] = useState(null);
+  const [aiDifficulty, setAiDifficulty] = useState('easy');
   const [isAiThinking, setIsAiThinking] = useState(false);
 
   const initialChessBoard = [
@@ -23,25 +26,13 @@ export default function Game() {
     'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
     'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'
   ];
-
-  const [history, setHistory] = useState([{
-    squares: initialChessBoard,
-    pgn: 'Start'
-  }]);
-  const [gameStatus, setGameStatus] = useState('playing'); // 'playing', 'checkmate', 'stalemate', 'timeout'
-  const [winner, setWinner] = useState(null); // 'white', 'black', null
-
-  const [currentMove, setCurrentMove] = useState(0);
+  const [gameStatus, setGameStatus] = useState('playing');
+  const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
-  const current = history[currentMove];
-  const currentSquares = current ? current.squares : initialChessBoard;
-  const [currentPlayer, setCurrentPlayer] = useState('white'); // 'white' or 'black'
-
-  const [timeLeft, setTimeLeft] = useState({
-    white: 600, // 10 min
-    black: 600
-  });
+  const [timeLeft, setTimeLeft] = useState({ white: 600, black: 600 });
   const timerRef = useRef(null);
+
+  const currentSquares = referee.getCurrentBoard() || initialChessBoard;
 
   useEffect(() => {
     if (gameStatus !== 'playing') return;
@@ -57,6 +48,7 @@ export default function Game() {
 
   // short timer warning
   useEffect(() => {
+    if (gameStatus !== 'playing') return null;
     if (timeLeft.white <= 30 || timeLeft.black <= 30) {
       const whiteTimer = document.querySelector('.timer.white');
       const blackTimer = document.querySelector('.timer.black');
@@ -73,11 +65,10 @@ export default function Game() {
       if (gameStatus !== 'playing') return null;
       setTimeLeft(prev => {
         const newTime = { ...prev };
-        newTime[currentPlayer] = Math.max(0, newTime[currentPlayer] - 1);
+        newTime[referee.getCurrentPlayer()] = Math.max(0, newTime[referee.getCurrentPlayer()] - 1);
 
-        if (newTime[currentPlayer] <= 0) {
+        if (newTime[referee.getCurrentPlayer()] <= 0) {
           clearInterval(timerRef.current);
-          alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins by time!`);
         }
 
         return newTime;
@@ -124,116 +115,105 @@ export default function Game() {
     );
   }
 
-  function handleMove(nextSquares,
-    from, to, captured, isEnPassant, isFromIA = false) {
-    const opponent = currentPlayer === 'white' ? 'black' : 'white';
-
+  function handleMove(nextSquares, from, to, captured, isEnPassant, isFromIA = false) {
     if (gameStatus !== 'playing') return false;
+    const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
+
     const isOpponentInCheckmate = Entity.isCheckmate(nextSquares, opponent);
     const isOpponentInStalemate = !isOpponentInCheckmate &&
       Entity.isStalemate(nextSquares, opponent);
 
     if (isOpponentInCheckmate) {
       setGameStatus('checkmate');
-      setWinner(currentPlayer);
+      setWinner(referee.getCurrentPlayer());
       clearInterval(timerRef.current);
-      return true;
-    }
-
-    if (isOpponentInStalemate) {
+    } else if (isOpponentInStalemate) {
       setGameStatus('stalemate');
       clearInterval(timerRef.current);
-      return true;
     }
 
-
-    const pgn = PgnNotation.getMoveNotation(
+    referee.recordMove(
+      nextSquares,
       from,
       to,
       currentSquares[from],
       captured,
       isEnPassant,
-      Entity.isCheck(nextSquares, currentPlayer),
+      Entity.isCheck(nextSquares, referee.getCurrentPlayer()),
       isOpponentInCheckmate
     );
 
-    const nextHistory = [...history.slice(0, currentMove + 1), {
-      squares: nextSquares,
-      pgn: pgn
-    }];
-
-    if (isEnPassant) {
-      nextHistory[captured] = '';
-    }
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
     setLastMove({
       from: PgnNotation.idxToXY(from),
       to: PgnNotation.idxToXY(to),
       piece: currentSquares[from],
       captured,
-      notation: pgn
+      notation: referee.getLastMove().pgn
     });
-    if (gameMode === 'ai' &&
-      gameStatus === 'playing' &&
-      !isFromIA) {
+
+    if (gameMode === 'ai' && !isFromIA) {
       setIsAiThinking(true);
       setTimeout(() => {
-        if (makeAiMove(nextSquares)) {
-          setCurrentPlayer('white'); // Set to white after AI move
-
-        }
+        makeAiMove(nextSquares);
         setIsAiThinking(false);
       }, 1500);
-    } else {
-      setCurrentPlayer('black'); // Switch to opponent's turn
     }
+
     return true;
   }
 
   function makeAiMove(currentSquares) {
     if (!currentSquares || gameStatus !== 'playing') return;
-    const move = ChessAI.getRandomMove(moves, currentSquares, 'black');
+
+    const move = ChessAI.getRandomMove(referee.getHistory(), currentSquares, 'black');
     if (move) {
-      const { from, to } = move;
+      const { from, to, enPassantTarget } = move;
 
-      const entityChar = currentSquares[from];
-      const entity = Entity.fromChar(entityChar, from, currentSquares);
-      const captured = currentSquares[to] !== '' ? currentSquares[to] : null;
-      const isEnPassant = entity.isEnPassant(to);
+      let state = {
+        selectedSquare: from,
+        validMoves: referee.getAllValidMoves(from, currentSquares, enPassantTarget),
+        enPassantTarget,
+        isOpponentPiece: false,
+        lastMovedSquare: null
+      };
 
-      const newSquares = [...currentSquares];
-      newSquares[to] = newSquares[from];
-      newSquares[from] = '';
-
-      if (isEnPassant) {
-        newSquares[(to + 8)] = '';
-      }
-      handleMove(
-        newSquares,
-        from,
+      const result = referee.handleSquareClick(
         to,
-        captured,
-        isEnPassant,
-        true // Indicate that this move is from AI
-      )
-      setCurrentPlayer('white'); // Set to white after AI move
-      return true;
+        state,
+        currentSquares,
+        'black',
+        enPassantTarget
+      );
+
+      if (result.moveData) {
+        const { from, to, isEnPassant } = result.moveData;
+        const newSquares = [...currentSquares];
+        const captured = newSquares[to] !== '' ? newSquares[to] : null;
+
+        newSquares[to] = newSquares[from];
+        newSquares[from] = '';
+
+        if (isEnPassant) {
+          newSquares[to + (referee.getCurrentPlayer() === 'white' ? -8 : 8)] = '';
+        }
+
+        handleMove(
+          newSquares,
+          from,
+          to,
+          captured,
+          isEnPassant,
+          true
+        );
+      }
     }
   }
 
   function startNewGame(mode) {
+    referee.reset();
     setGameMode(mode);
     setGameStatus('playing');
-    setHistory([{
-      squares: initialChessBoard,
-      pgn: 'Start'
-    }]);
-    setCurrentMove(0);
-    setTimeLeft({
-      white: 600,
-      black: 600
-    });
+    setTimeLeft({ white: 600, black: 600 });
     setWinner(null);
   }
 
@@ -268,19 +248,14 @@ export default function Game() {
     );
   }
 
-
-
-  function jumpTo(nextMove) {
-    setCurrentMove(nextMove);
-  }
-
   const moves = [];
-  if (history.length >= 2)
+  const history = referee.getHistory();
+  if (history.length >= 2) {
     for (let i = 1; i < history.length; i += 2) {
       const whiteMove = history[i];
       const blackMove = history[i + 1];
-
       let description = ``;
+
       if (whiteMove && whiteMove.pgn && whiteMove.pgn !== 'Start') {
         description += ` ${whiteMove.pgn}`;
       }
@@ -290,10 +265,13 @@ export default function Game() {
 
       moves.push(
         <li key={i}>
-          <button className="move" onClick={() => jumpTo(i)}>{description}</button>
+          <button className="move" onClick={() => (referee.jumpTo(i))}>
+            {description}
+          </button>
         </li>
       );
     }
+  }
   return (
     <ThemeProvider>
       <div className={`game theme-${localStorage.getItem('chessTheme') || theme}`}>
@@ -306,10 +284,10 @@ export default function Game() {
 
             <div className="board-container">
               <div className="timer-container">
-                <div className={`timer white ${currentPlayer === 'white' ? 'active' : ''}`}>
+                <div className={`timer white ${referee.getCurrentPlayer() === 'white' ? 'active' : ''}`}>
                   White: {formatTime(timeLeft.white)}
                 </div>
-                <div className={`timer black ${currentPlayer === 'black' ? 'active' : ''}`}>
+                <div className={`timer black ${referee.getCurrentPlayer() === 'black' ? 'active' : ''}`}>
                   Black: {formatTime(timeLeft.black)}
                 </div>
                 <ThemeSelector />
@@ -317,11 +295,10 @@ export default function Game() {
               <div className="game-content">
                 <div className="game-board">
                   <Board
-                    currentPlayer={currentPlayer}
-                    squares={currentSquares}
                     onMove={handleMove}
                     lastMove={lastMove}
                     gameStatus={gameStatus}
+                    referee={referee}
                   />
                 </div>
                 <div className="game-info">

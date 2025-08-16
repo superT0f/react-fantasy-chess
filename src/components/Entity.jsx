@@ -23,7 +23,7 @@ const EntityUI = ({ entity }) => {
     const image = require(`../assets/themes/${theme}/${imageName}.png`);
     return <img src={image} alt={entity} className="chess-entity" />;
   } catch (e) {
-    console.error(`Image not found: ${imageName} in theme ${theme}`);
+    console.error(`Image not found: ${imageName}.png in theme ${theme}`);
     return entity;
   }
 };

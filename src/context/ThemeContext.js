@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('mystical'); // Default theme
+  const [theme, setTheme] = useState('mystical-hd'); // Default theme
   
   useEffect(() => {
     const savedTheme = localStorage.getItem('chessTheme');

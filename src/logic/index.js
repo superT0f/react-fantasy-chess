@@ -1,12 +1,10 @@
-import { Entity } from './Entity';
-
+import Entity from './Entity';
+export { default as Referee } from './Referee';
 export { default as Pawn } from './Pawn';
 export { default as Bishop } from './pieces/Bishop';
 export { default as King } from './pieces/King';
 export { default as Knight } from './pieces/Knight';
 export { default as Queen } from './pieces/Queen';
 export { default as Rook } from './pieces/Rook';
-
 export { Entity };
-
 export { default as PgnNotation } from './PgnNotation';

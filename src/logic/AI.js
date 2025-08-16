@@ -18,10 +18,11 @@ export default class ChessAI {
             if (entityChar && Entity.getColorByEntity(entityChar) === player) {
                 const entity = Entity.fromChar(entityChar, from, squares);
                 for (let to = 0; to < 64; to++) {
+                    let enPassantTarget = entity.enPassantTarget;
                     if (entity.isValidMove(to)) {
                         const simulatedBoard = Entity.simulateMove(squares, from, to);
                         if (!Entity.isCheck(simulatedBoard, player)) {
-                            validMoves.push({ from, to });
+                            validMoves.push({ from, to , enPassantTarget});
                         }
                     }
                 }
