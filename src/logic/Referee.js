@@ -167,7 +167,8 @@ export default class Referee {
       captured,
       isEnPassant,
       isCheck,
-      isCheckmate
+      isCheckmate,
+      isCastle
     );
 
     this.history.push({

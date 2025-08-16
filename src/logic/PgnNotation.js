@@ -16,7 +16,11 @@ export default class PgnNotation {
 
     return row;
   }
-  static getMoveNotation(from, to, entity, captured, isEnPassant = false, isCheck = false, isCheckmate = false) {
+  static getMoveNotation(from, to, entity, captured,
+    isEnPassant = false,
+    isCheck = false,
+    isCheckmate = false,
+    isCastle = false) {
     if (!entity) return " ".repeat(10);
 
     const entityType = entity.toLowerCase();
@@ -48,6 +52,9 @@ export default class PgnNotation {
     if (isEnPassant) notation += ' e.p.';
     if (isCheckmate) notation += '#';
     else if (isCheck) notation += '+';
+    if (isCastle) {
+      notation = (toCol === 'c') ? 'O-O-O' : 'O-O';
+    }
 
     return notation.padEnd(10, ' ');
   }
