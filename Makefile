@@ -50,7 +50,7 @@ umount: ## ⬇️ Unmount Gandi
 
 ingest: ## 📥 Ingest content
 	@echo "📥 Ingesting content"
-	gitingest . -e build/ -e node_modules/ -e production/ -e LICENCE.md
+	gitingest ./src/
 
 check-prod-link: ## 🔍 Check for production links and sources
 	@echo "🔍 Checking production link : "
