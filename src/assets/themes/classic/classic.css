@@ -1,0 +1,10 @@
+
+.theme-classic .board-row:nth-child(odd) .square:nth-child(even),
+.theme-classic .board-row:nth-child(even) .square:nth-child(odd) {
+  background-color: rgb(218, 178, 49) !important;
+}
+
+.theme-classic .board-row:nth-child(odd) .square:nth-child(odd),
+.theme-classic .board-row:nth-child(even) .square:nth-child(even) {
+  background-color: lightgray !important;
+}
