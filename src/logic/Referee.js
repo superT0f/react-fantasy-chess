@@ -34,12 +34,22 @@ export default class Referee {
   }
 
   getCurrentBoard() {
-    return this.history[this.currentMoveIndex]?.squares;
+    return this.history[this.currentMoveIndex]?.squares || this.getInitialBoard();
   }
 
   getSquare(idx) {
-    return this.history[this.currentMoveIndex]?.squares ? this.history[this.currentMoveIndex].squares[idx] : null;
+    return this.getCurrentBoard()[idx] || '';
   }
+  getSquareLower(idx) {
+    const entityChar = this.getSquare(idx);
+    return entityChar ? entityChar.toLowerCase() : '';
+  }
+
+  getSquareColor(idx) {
+    const entityChar = this.getSquare(idx);
+    return entityChar ? Entity.getColorByEntity(entityChar) : null;
+  }
+
 
   getLastMove() {
     return this.history[this.currentMoveIndex];
@@ -84,13 +94,13 @@ export default class Referee {
     return false;
   }
 
-  getAllValidMoves(from, squares, enPassantTarget) {
+  getAllValidMoves(from, enPassantTarget) {
     const moves = [];
 
     if (!this.getCurrentBoard()[from]) return moves;
 
     for (let to = 0; to < 64; to++) {
-      if (this.isValidMove(from, to, squares, enPassantTarget)) {
+      if (this.isValidMove(from, to, this.getCurrentBoard(), enPassantTarget)) {
         moves.push(to);
       }
     }
@@ -105,12 +115,12 @@ export default class Referee {
     return newSquares;
   }
 
-  handleSquareClick(squareIndex, currentState, squares, enPassantTarget) {
+  handleSquareClick(squareIndex, currentState) {
     const { selectedSquare, validMoves } = currentState;
     const newState = { ...currentState };
 
     if (selectedSquare !== null) {
-      const entity = this.isValidMove(selectedSquare, squareIndex, squares, enPassantTarget);
+      const entity = this.isValidMove(selectedSquare, squareIndex, this.getCurrentBoard(), currentState.enPassantTarget);
 
       if (entity) {
         newState.lastMovedSquare = squareIndex;
@@ -135,19 +145,18 @@ export default class Referee {
         newState.selectedSquare = null;
         newState.validMoves = [];
       }
-    } else if (squares[squareIndex] &&
-      Entity.getColorByEntity(squares[squareIndex]) === this.turn) {
+    } else if (this.getSquareColor(squareIndex) === this.turn) {
       newState.selectedSquare = squareIndex;
-      newState.validMoves = this.getAllValidMoves(squareIndex, squares, enPassantTarget);
+      newState.validMoves = this.getAllValidMoves(squareIndex, currentState.enPassantTarget);
       newState.isOpponentPiece = false;
     }
 
     return { newState, moveData: null };
   }
 
-  recordMove(squares, from, to, piece, captured, isEnPassant, isCheck, isCheckmate) {
+  recordMove(squares, from, to, captured, isEnPassant, isCheck, isCheckmate) {
     let newSquares = [...squares];
-    const isCastle = piece.toLowerCase() === 'k' && Math.abs(from % 8 - to % 8) === 2;
+    const isCastle = this.getSquareLower(from) === 'k' && Math.abs(from % 8 - to % 8) === 2;
 
     if (isCastle) {
       const direction = to % 8 > from % 8 ? 1 : -1;
@@ -159,11 +168,11 @@ export default class Referee {
       newSquares[rookTo] = newSquares[rookFrom];
       newSquares[rookFrom] = '';
     }
-
+    const entityChar = this.getSquare(from);
     const pgn = PgnNotation.getMoveNotation(
       from,
       to,
-      piece,
+      entityChar,
       captured,
       isEnPassant,
       isCheck,
@@ -172,11 +181,11 @@ export default class Referee {
     );
 
     this.history.push({
-      squares: [...squares],
+      squares: newSquares,
       pgn,
       from,
       to,
-      piece,
+      entityChar,
       captured,
       isCastle
     });
@@ -193,6 +202,10 @@ export default class Referee {
   }
   getCurrentPlayer() {
     return this.turn;
+  }
+
+  getCurrentOpponent() {
+    return this.turn === 'white' ? 'black' : 'white';
   }
   getCurrentMove() {
     return this.currentMove;
