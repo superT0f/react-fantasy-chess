@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Referee from './logic/Referee';
 import Entity from './logic/Entity';
 import PgnNotation from './logic/PgnNotation';
+import MoveData from './logic/MoveData';
 
 export default function Game() {
   const { theme } = useTheme();
@@ -19,7 +20,14 @@ export default function Game() {
   const [gameStatus, setGameStatus] = useState('playing');
   const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
-  const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({ gameMode, aiDifficulty, referee, gameStatus });
+  
+  const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({ 
+    gameMode, 
+    aiDifficulty, 
+    referee, 
+    gameStatus 
+  });
+  
   const {
     timeLeft,
     currentPlayer: timerPlayer,
@@ -38,13 +46,15 @@ export default function Game() {
     setWinner(null);
   }
 
-  function handleMove(nextSquares, from, to, captured, isEnPassant, isFromIA = false) {
+  function handleMove(moveData) {
     if (gameStatus !== 'playing') return false;
+    
     const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
+    const { squares, isFromIA } = moveData;
 
-    const isOpponentInCheckmate = Entity.isCheckmate(nextSquares, opponent);
-    const isOpponentInStalemate = !isOpponentInCheckmate &&
-      Entity.isStalemate(nextSquares, opponent);
+    const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
+    const isOpponentInStalemate = !isOpponentInCheckmate && 
+      Entity.isStalemate(squares, opponent);
 
     if (isOpponentInCheckmate) {
       setGameStatus('checkmate');
@@ -55,28 +65,20 @@ export default function Game() {
       clearInterval(timerRef.current);
     }
 
-    referee.recordMove(
-      nextSquares,
-      from,
-      to,
-      captured,
-      isEnPassant,
-      Entity.isCheck(nextSquares, referee.getCurrentPlayer()),
-      isOpponentInCheckmate
-    );
+    referee.recordMove(moveData);
 
     setLastMove({
-      from: PgnNotation.idxToXY(from),
-      to: PgnNotation.idxToXY(to),
-      piece: referee.getSquare(from),
-      captured,
+      from: PgnNotation.idxToXY(moveData.from),
+      to: PgnNotation.idxToXY(moveData.to),
+      piece: referee.getSquare(moveData.from),
+      captured: moveData.captured,
       notation: referee.getLastMove().pgn
     });
 
     if (gameMode === 'ai' && !isFromIA) {
       setIsAiThinking(true);
       setTimeout(() => {
-        makeAiMove(nextSquares, handleMove);
+        makeAiMove(squares, handleMove);
         setIsAiThinking(false);
       }, 500);
     }
@@ -84,7 +86,6 @@ export default function Game() {
     switchPlayer(opponent, onTimeout);
     return true;
   }
-
 
   const onTimeout = () => {
     setGameStatus('timeout');

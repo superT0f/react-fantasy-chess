@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import ChessAI from '../../logic/ChessAI';
+import MoveData from '../../logic/MoveData';
+import Entity from '../../logic/Entity';
 
 export function useAIController({ gameMode, aiDifficulty, referee, gameStatus }) {
     const [isAiThinking, setIsAiThinking] = useState(false);
@@ -7,6 +9,7 @@ export function useAIController({ gameMode, aiDifficulty, referee, gameStatus })
     const makeAiMove = useCallback((currentSquares, handleMove) => {
         if (!currentSquares || gameStatus !== 'playing') return;
         if (referee.getCurrentPlayer() !== 'black') return;
+        
         const move = ChessAI.getRandomMove(referee.getHistory(), currentSquares, 'black');
         if (move) {
             const { from, to, enPassantTarget } = move;
@@ -19,15 +22,11 @@ export function useAIController({ gameMode, aiDifficulty, referee, gameStatus })
                 lastMovedSquare: null
             };
 
-            const result = referee.handleSquareClick(
-                to,
-                state,
-                currentSquares,
-                enPassantTarget
-            );
+            const result = referee.handleSquareClick(to, state, currentSquares, enPassantTarget);
 
             if (result.moveData) {
-                const { from, to, isEnPassant } = result.moveData;
+                const { from, to, isEnPassant, isCastle } = result.moveData;
+
                 const newSquares = [...currentSquares];
                 const captured = newSquares[to] !== '' ? newSquares[to] : null;
 
@@ -38,17 +37,21 @@ export function useAIController({ gameMode, aiDifficulty, referee, gameStatus })
                     newSquares[to + (referee.getCurrentPlayer() === 'white' ? -8 : 8)] = '';
                 }
 
-                handleMove(
-                    newSquares,
+                const moveData = new MoveData({
                     from,
                     to,
+                    squares: newSquares,
                     captured,
                     isEnPassant,
-                    true
-                );
+                    isCheck: Entity.isCheck(newSquares, referee.getCurrentPlayer()),
+                    isCheckmate: Entity.isCheckmate(newSquares, referee.getCurrentOpponent()),
+                    isCastle,
+                    isFromIA: true
+                });
+
+                handleMove(moveData);
             }
         }
-
     }, [gameStatus, referee]);
 
     return { isAiThinking, setIsAiThinking, makeAiMove };

@@ -1,6 +1,7 @@
 import Entity from './Entity';
 import PgnNotation from './PgnNotation';
 import Utils from '../Utils';
+import MoveData from './MoveData';
 
 export default class Referee {
   constructor() {
@@ -100,7 +101,7 @@ export default class Referee {
     if (!this.getCurrentBoard()[from]) return moves;
 
     for (let to = 0; to < 64; to++) {
-      if (this.isValidMove(from, to, this.getCurrentBoard(), enPassantTarget)) {
+      if (this.isValidMove(from, to, enPassantTarget)) {
         moves.push(to);
       }
     }
@@ -118,17 +119,20 @@ export default class Referee {
   handleSquareClick(squareIndex, currentState) {
     const { selectedSquare, validMoves } = currentState;
     const newState = { ...currentState };
+    let isCastle = false; // Ajouter cette variable
 
     if (selectedSquare !== null) {
-      const entity = this.isValidMove(selectedSquare, squareIndex, this.getCurrentBoard(), currentState.enPassantTarget);
+      const entity = this.isValidMove(
+        selectedSquare,
+        squareIndex,
+        currentState.enPassantTarget);
 
       if (entity) {
         newState.lastMovedSquare = squareIndex;
         newState.selectedSquare = null;
         newState.validMoves = [];
 
-
-        const isCastle = entity.type === 'k' && Math.abs(selectedSquare % 8 - squareIndex % 8) === 2;
+        isCastle = entity.type === 'k' && Math.abs(selectedSquare % 8 - squareIndex % 8) === 2;
 
 
         return {
@@ -154,41 +158,42 @@ export default class Referee {
     return { newState, moveData: null };
   }
 
-  recordMove(squares, from, to, captured, isEnPassant, isCheck, isCheckmate) {
-    let newSquares = [...squares];
-    const isCastle = this.getSquareLower(from) === 'k' && Math.abs(from % 8 - to % 8) === 2;
+recordMove(moveData) {
+    let newSquares = [...moveData.squares];
 
-    if (isCastle) {
-      const direction = to % 8 > from % 8 ? 1 : -1;
+    if (moveData.isCastle) {
+      const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
       const rookFromCol = direction === 1 ? 7 : 0;
       const rookToCol = direction === 1 ? 5 : 3;
-      const rookFrom = Math.floor(from / 8) * 8 + rookFromCol;
-      const rookTo = Math.floor(from / 8) * 8 + rookToCol;
+      const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
+      const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
 
       newSquares[rookTo] = newSquares[rookFrom];
       newSquares[rookFrom] = '';
     }
-    const entityChar = this.getSquare(from);
+
+    const entityChar = this.getSquare(moveData.from);
     const pgn = PgnNotation.getMoveNotation(
-      from,
-      to,
+      moveData.from,
+      moveData.to,
       entityChar,
-      captured,
-      isEnPassant,
-      isCheck,
-      isCheckmate,
-      isCastle
+      moveData.captured,
+      moveData.isEnPassant,
+      moveData.isCheck,
+      moveData.isCheckmate,
+      moveData.isCastle
     );
 
     this.history.push({
       squares: newSquares,
       pgn,
-      from,
-      to,
+      from: moveData.from,
+      to: moveData.to,
       entityChar,
-      captured,
-      isCastle
+      captured: moveData.captured,
+      isCastle: moveData.isCastle
     });
+    
     this.currentMoveIndex++;
     this.turn = this.turn === 'white' ? 'black' : 'white';
   }

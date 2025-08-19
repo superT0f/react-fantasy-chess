@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Entity from '../logic/Entity';
+import MoveData from '../logic/MoveData';
 
 export function useBoardState(referee, onMove) {
   const [localState, setLocalState] = useState({
@@ -15,8 +16,7 @@ export function useBoardState(referee, onMove) {
 
     const { newState, moveData } = referee.handleSquareClick(
       squareIndex,
-      localState,
-      localState.enPassantTarget
+      localState
     );
 
     setLocalState(newState);
@@ -24,6 +24,7 @@ export function useBoardState(referee, onMove) {
     if (moveData) {
       const newSquares = [...referee.getCurrentBoard()];
       const captured = newSquares[moveData.to];
+      
       newSquares[moveData.to] = newSquares[moveData.from];
       newSquares[moveData.from] = '';
 
@@ -38,14 +39,19 @@ export function useBoardState(referee, onMove) {
         newSquares[rookFrom] = '';
       }
 
-      onMove(
-        newSquares,
-        moveData.from,
-        moveData.to,
+      const moveDataObj = new MoveData({
+        from: moveData.from,
+        to: moveData.to,
+        squares: newSquares,
         captured,
-        moveData.isEnPassant,
-        moveData.isCastle
-      );
+        isEnPassant: moveData.isEnPassant,
+        isCheck: Entity.isCheck(newSquares, referee.getCurrentPlayer()),
+        isCheckmate: Entity.isCheckmate(newSquares, referee.getCurrentOpponent()),
+        isCastle: moveData.isCastle,
+        isFromIA: false
+      });
+
+      onMove(moveDataObj);
     }
   };
 
