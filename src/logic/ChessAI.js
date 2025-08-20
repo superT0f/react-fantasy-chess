@@ -16,20 +16,20 @@ export default class ChessAI {
 
         switch (difficulty) {
             case 'easy':
-                searchDepth = 2;
-                break;
-            case 'medium':
-                searchDepth = 3;
-                break;
-            case 'hard':
                 searchDepth = 4;
                 break;
+            case 'medium':
+                searchDepth = 15;
+                break;
+            case 'hard':
+                searchDepth = 20;
+                break;
             default:
-                searchDepth = 2;
+                searchDepth = 4;
         }
 
-        // Use book moves in opening
-        if (referee.getHistory().length < 8) {
+        // Use book moves in opening / middle
+        if (referee.getHistory().length < 18) {
             const bookMove = this.getBookMove(referee.getHistory());
             if (bookMove && this.isMoveSafe(bookMove, squares, player)) {
                 return bookMove;

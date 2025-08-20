@@ -2,57 +2,443 @@
   "openings": [
     {
       "name": "Italian Game",
-      "moves": [
-        "e2e4",
-        "e7e5",
-        "g1f3",
-        "b8c6",
-        "f1c4"
-      ]
+      "eco": "C50",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4"]
     },
     {
-      "name": "Sicilian Defense",
-      "moves": [
-        "e2e4",
-        "c7c5"
-      ]
+      "name": "Italian Game: Giuoco Piano",
+      "eco": "C50",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "f8c5"]
     },
     {
-      "name": "French Defense",
-      "moves": [
-        "e2e4",
-        "e7e6"
-      ]
+      "name": "Italian Game: Evans Gambit",
+      "eco": "C51",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "f8c5", "b2b4"]
+    },
+    {
+      "name": "Italian Game: Greco Attack",
+      "eco": "C54",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "f8c5", "c2c3", "g8f6", "d2d4"]
+    },
+    {
+      "name": "Two Knights Defense",
+      "eco": "C55",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6"]
+    },
+    {
+      "name": "Two Knights Defense: Traxler Counterattack",
+      "eco": "C57",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6", "f3g5", "f8c5"]
     },
     {
       "name": "Ruy Lopez",
-      "moves": [
-        "e2e4",
-        "e7e5",
-        "g1f3",
-        "b8c6",
-        "f1b5"
-      ]
+      "eco": "C60",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5"]
+    },
+    {
+      "name": "Ruy Lopez: Morphy Defense",
+      "eco": "C70",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6"]
+    },
+    {
+      "name": "Ruy Lopez: Closed (Main Line)",
+      "eco": "C88",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6", "b5a4", "g8f6", "e1g1", "f8e7", "f1e1", "b7b5", "a4b3", "e8g8"]
+    },
+    {
+      "name": "Scotch Game",
+      "eco": "C45",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "d2d4"]
+    },
+    {
+      "name": "Scotch Gambit",
+      "eco": "C44",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "d2d4", "e5d4", "f1c4"]
+    },
+    {
+      "name": "King's Gambit",
+      "eco": "C30",
+      "moves": ["e2e4", "e7e5", "f2f4"]
+    },
+    {
+      "name": "King's Gambit: Accepted",
+      "eco": "C33",
+      "moves": ["e2e4", "e7e5", "f2f4", "e5f4"]
+    },
+    {
+      "name": "King's Gambit: Declined",
+      "eco": "C30",
+      "moves": ["e2e4", "e7e5", "f2f4", "f8c5"]
+    },
+    {
+      "name": "Vienna Game",
+      "eco": "C25",
+      "moves": ["e2e4", "e7e5", "b1c3"]
+    },
+    {
+      "name": "Vienna Game: Falkbeer Variation",
+      "eco": "C26",
+      "moves": ["e2e4", "e7e5", "b1c3", "g8f6"]
+    },
+    {
+      "name": "Petrov's Defense",
+      "eco": "C42",
+      "moves": ["e2e4", "e7e5", "g1f3", "g8f6"]
+    },
+    {
+      "name": "Philidor Defense",
+      "eco": "C41",
+      "moves": ["e2e4", "e7e5", "g1f3", "d7d6"]
+    },
+    {
+      "name": "Sicilian Defense",
+      "eco": "B20",
+      "moves": ["e2e4", "c7c5"]
+    },
+    {
+      "name": "Sicilian Defense: Open",
+      "eco": "B32",
+      "moves": ["e2e4", "c7c5", "g1f3", "b8c6", "d2d4", "c5d4", "f3d4"]
+    },
+    {
+      "name": "Sicilian Defense: Najdorf Variation",
+      "eco": "B90",
+      "moves": ["e2e4", "c7c5", "g1f3", "d7d6", "d2d4", "c5d4", "f3d4", "g8f6", "b1c3", "a7a6"]
+    },
+    {
+      "name": "Sicilian Defense: Dragon Variation",
+      "eco": "B70",
+      "moves": ["e2e4", "c7c5", "g1f3", "d7d6", "d2d4", "c5d4", "f3d4", "g8f6", "b1c3", "g7g6"]
+    },
+    {
+      "name": "Sicilian Defense: Scheveningen Variation",
+      "eco": "B80",
+      "moves": ["e2e4", "c7c5", "g1f3", "d7d6", "d2d4", "c5d4", "f3d4", "g8f6", "b1c3", "e7e6"]
+    },
+    {
+      "name": "Sicilian Defense: Alapin Variation",
+      "eco": "B22",
+      "moves": ["e2e4", "c7c5", "c2c3"]
+    },
+    {
+      "name": "Sicilian Defense: Closed",
+      "eco": "B23",
+      "moves": ["e2e4", "c7c5", "b1c3"]
+    },
+    {
+      "name": "French Defense",
+      "eco": "C00",
+      "moves": ["e2e4", "e7e6"]
+    },
+    {
+      "name": "French Defense: Exchange Variation",
+      "eco": "C01",
+      "moves": ["e2e4", "e7e6", "d2d4", "d7d5", "e4d5"]
+    },
+    {
+      "name": "French Defense: Tarrasch Variation",
+      "eco": "C03",
+      "moves": ["e2e4", "e7e6", "d2d4", "d7d5", "b1d2"]
+    },
+    {
+      "name": "French Defense: Winawer Variation",
+      "eco": "C15",
+      "moves": ["e2e4", "e7e6", "d2d4", "d7d5", "b1c3", "f8b4"]
+    },
+    {
+      "name": "French Defense: Advance Variation",
+      "eco": "C02",
+      "moves": ["e2e4", "e7e6", "d2d4", "d7d5", "e4e5"]
     },
     {
       "name": "Caro-Kann Defense",
-      "moves": [
-        "e2e4",
-        "c7c6"
-      ]
+      "eco": "B10",
+      "moves": ["e2e4", "c7c6"]
+    },
+    {
+      "name": "Caro-Kann: Classical Variation",
+      "eco": "B18",
+      "moves": ["e2e4", "c7c6", "d2d4", "d7d5", "b1c3", "d5e4", "c3e4", "c8f5"]
+    },
+    {
+      "name": "Caro-Kann: Advance Variation",
+      "eco": "B12",
+      "moves": ["e2e4", "c7c6", "d2d4", "d7d5", "e4e5"]
+    },
+    {
+      "name": "Caro-Kann: Panov-Botvinnik Attack",
+      "eco": "B13",
+      "moves": ["e2e4", "c7c6", "d2d4", "d7d5", "e4d5", "c6d5", "c2c4"]
+    },
+    {
+      "name": "Pirc Defense",
+      "eco": "B07",
+      "moves": ["e2e4", "d7d6", "d2d4", "g8f6", "b1c3", "g7g6"]
+    },
+    {
+      "name": "Modern Defense",
+      "eco": "B06",
+      "moves": ["e2e4", "g7g6", "d2d4", "f8g7"]
+    },
+    {
+      "name": "Alekhine's Defense",
+      "eco": "B02",
+      "moves": ["e2e4", "g8f6"]
     },
     {
       "name": "Scandinavian Defense",
-      "moves": [
-        "e2e4",
-        "d7d5"
-      ]
+      "eco": "B01",
+      "moves": ["e2e4", "d7d5"]
+    },
+    {
+      "name": "Scandinavian: Modern Variation",
+      "eco": "B01",
+      "moves": ["e2e4", "d7d5", "e4d5", "g8f6"]
+    },
+    {
+      "name": "Queen's Pawn Game",
+      "eco": "D00",
+      "moves": ["d2d4", "d7d5"]
+    },
+    {
+      "name": "Queen's Gambit",
+      "eco": "D06",
+      "moves": ["d2d4", "d7d5", "c2c4"]
+    },
+    {
+      "name": "Queen's Gambit Declined",
+      "eco": "D30",
+      "moves": ["d2d4", "d7d5", "c2c4", "e7e6"]
+    },
+    {
+      "name": "Queen's Gambit Accepted",
+      "eco": "D20",
+      "moves": ["d2d4", "d7d5", "c2c4", "d5c4"]
+    },
+    {
+      "name": "Slav Defense",
+      "eco": "D10",
+      "moves": ["d2d4", "d7d5", "c2c4", "c7c6"]
+    },
+    {
+      "name": "Semi-Slav Defense",
+      "eco": "D43",
+      "moves": ["d2d4", "d7d5", "c2c4", "e7e6", "b1c3", "c7c6"]
+    },
+    {
+      "name": "Catalan Opening",
+      "eco": "E00",
+      "moves": ["d2d4", "g8f6", "c2c4", "e7e6", "g2g3"]
+    },
+    {
+      "name": "London System",
+      "eco": "D02",
+      "moves": ["d2d4", "d7d5", "g1f3", "g8f6", "c1f4"]
+    },
+    {
+      "name": "Trompowsky Attack",
+      "eco": "A45",
+      "moves": ["d2d4", "g8f6", "c1g5"]
+    },
+    {
+      "name": "Nimzo-Indian Defense",
+      "eco": "E20",
+      "moves": ["d2d4", "g8f6", "c2c4", "e7e6", "b1c3", "f8b4"]
+    },
+    {
+      "name": "King's Indian Defense",
+      "eco": "E60",
+      "moves": ["d2d4", "g8f6", "c2c4", "g7g6"]
+    },
+    {
+      "name": "King's Indian: Classical Variation",
+      "eco": "E92",
+      "moves": ["d2d4", "g8f6", "c2c4", "g7g6", "b1c3", "f8g7", "e2e4", "d7d6", "g1f3", "e8g8", "f1e2"]
+    },
+    {
+      "name": "Grünfeld Defense",
+      "eco": "D70",
+      "moves": ["d2d4", "g8f6", "c2c4", "g7g6", "b1c3", "d7d5"]
+    },
+    {
+      "name": "Benoni Defense",
+      "eco": "A56",
+      "moves": ["d2d4", "g8f6", "c2c4", "c7c5"]
+    },
+    {
+      "name": "Modern Benoni",
+      "eco": "A60",
+      "moves": ["d2d4", "g8f6", "c2c4", "c7c5", "d4d5", "e7e6"]
+    },
+    {
+      "name": "Dutch Defense",
+      "eco": "A80",
+      "moves": ["d2d4", "f7f5"]
     },
     {
       "name": "English Opening",
-      "moves": [
-        "c2c4"
-      ]
+      "eco": "A10",
+      "moves": ["c2c4"]
+    },
+    {
+      "name": "English: Symmetrical Variation",
+      "eco": "A30",
+      "moves": ["c2c4", "c7c5"]
+    },
+    {
+      "name": "English: Anglo-Indian Defense",
+      "eco": "A15",
+      "moves": ["c2c4", "g8f6"]
+    },
+    {
+      "name": "Réti Opening",
+      "eco": "A04",
+      "moves": ["g1f3"]
+    },
+    {
+      "name": "King's Indian Attack",
+      "eco": "A07",
+      "moves": ["g1f3", "d7d5", "g2g3"]
+    },
+    {
+      "name": "Bird's Opening",
+      "eco": "A02",
+      "moves": ["f2f4"]
+    },
+    {
+      "name": "Nimzo-Larsen Attack",
+      "eco": "A01",
+      "moves": ["b2b3"]
+    },
+    {
+      "name": "Benko Gambit",
+      "eco": "A57",
+      "moves": ["d2d4", "g8f6", "c2c4", "c7c5", "d4d5", "b7b5"]
+    },
+    {
+      "name": "Bogo-Indian Defense",
+      "eco": "E11",
+      "moves": ["d2d4", "g8f6", "c2c4", "e7e6", "g1f3", "f8b4"]
+    },
+    {
+      "name": "Queen's Indian Defense",
+      "eco": "E12",
+      "moves": ["d2d4", "g8f6", "c2c4", "e7e6", "g1f3", "b7b6"]
+    },
+    {
+      "name": "Old Indian Defense",
+      "eco": "A41",
+      "moves": ["d2d4", "g8f6", "b1c3", "d7d5"]
+    },
+    {
+      "name": "Four Knights Game",
+      "eco": "C47",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "b1c3", "g8f6"]
+    },
+    {
+      "name": "Four Knights: Scotch Variation",
+      "eco": "C47",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "b1c3", "g8f6", "d2d4"]
+    },
+    {
+      "name": "Three Knights Game",
+      "eco": "C46",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "b1c3"]
+    },
+    {
+      "name": "Hungarian Defense",
+      "eco": "C50",
+      "moves": ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "f8e7"]
+    },
+    {
+      "name": "Center Game",
+      "eco": "C21",
+      "moves": ["e2e4", "e7e5", "d2d4", "e5d4"]
+    },
+    {
+      "name": "Danish Gambit",
+      "eco": "C21",
+      "moves": ["e2e4", "e7e5", "d2d4", "e5d4", "c2c3"]
+    },
+    {
+      "name": "Blackmar-Diemer Gambit",
+      "eco": "D00",
+      "moves": ["d2d4", "d7d5", "e2e4", "d5e4", "b1c3"]
+    },
+    {
+      "name": "Budapest Gambit",
+      "eco": "A51",
+      "moves": ["d2d4", "g8f6", "c2c4", "e7e5"]
+    },
+    {
+      "name": "King's Fianchetto Opening",
+      "eco": "A02",
+      "moves": ["g2g3"]
+    },
+    {
+      "name": "Sokolsky Opening",
+      "eco": "A00",
+      "moves": ["b2b4"]
+    },
+    {
+      "name": "Groß's Preparation",
+      "eco": "A00",
+      "moves": ["g1h3"]
+    },
+    {
+      "name": "Barnes Opening",
+      "eco": "A00",
+      "moves": ["f2f3"]
+    },
+    {
+      "name": "Amar Opening",
+      "eco": "A00",
+      "moves": ["g1h3", "d7d5", "g2g3", "e7e5", "f1g2", "c7c6"]
+    },
+    {
+      "name": "Dunst Opening",
+      "eco": "A00",
+      "moves": ["b1c3"]
+    },
+    {
+      "name": "Van't Kruijs Opening",
+      "eco": "A00",
+      "moves": ["e2e3"]
+    },
+    {
+      "name": "Ware Opening",
+      "eco": "A00",
+      "moves": ["a2a4"]
+    },
+    {
+      "name": "Durkin Opening",
+      "eco": "A00",
+      "moves": ["b1a3"]
+    },
+    {
+      "name": "Polish Opening",
+      "eco": "A00",
+      "moves": ["b2b4"]
+    },
+    {
+      "name": "Saragossa Opening",
+      "eco": "A00",
+      "moves": ["c2c3"]
+    },
+    {
+      "name": "Clemenz Opening",
+      "eco": "A00",
+      "moves": ["h2h3"]
+    },
+    {
+      "name": "Anderssen's Opening",
+      "eco": "A00",
+      "moves": ["a2a3"]
+    },
+    {
+      "name": "Grob's Attack",
+      "eco": "A00",
+      "moves": ["g2g4"]
     }
   ]
 }
