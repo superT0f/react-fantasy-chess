@@ -1,46 +1,94 @@
-# 📜 Changelog
+# CHANGELOG
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.1]
+## [Unreleased]
 
-### ✨ New Features
-- **🎨 Themes**:
-  - Added `mystical-hd` theme with new assets
-  - New `mystical` theme with various improvements
-  - `classic` theme renamed to `first-blood`
-- **♟️ Gameplay**:
-  - Implemented basic AI functionality: random moves + booking
-  - Added game mode selection
-  - Enhanced chess game with themes, timer, and victory messages
-  - Added last move highlighting
-  - Implemented `isCheck` and integrated it into move validation
-  - Reworked and fixed en passant PGN handling
-- **🖥️ UI/UX**:
-  - Improved fantasy logo look & feel
-  - Separate styles for player/opponent move suggestions
-  - Enhanced selected square and valid move indicators
-  - Added basic footer
+### Features
+- Implemented Graveyard component with point calculation and visual display
+- Added Burger menu component for better mobile navigation
+- Enhanced timer display styles and positioning
+- Improved AI move logic and move validation
+- Introduced MoveData class for better move handling
 
-### 🛠️ Improvements & Refactoring
-- 🔧 Split entity and base entity logic
-- ✏️ Improved global documentation
-- ♻️ Renamed "piece" to "entity" in codebase
-- 🏗️ Added production check, git ingest in Makefile
-- 📈 Added version bump command in Makefile
+### Refactor
+- Split game and board logic into separate components and hooks
+- Refactored entity and base entity classes for better organization
 
-### 🐛 Bug Fixes
-- 🧹 Removed misplaced theme files
-- ✍️ Fixed PGN move count display (now shows only once)
-- 🛠️ Fixed Makefile dev setup
+## [2025-08-20] - Version 1.2.0
 
-### 📚 Documentation
-- 📝 Updated README with new screenshot
-- 📖 Added Pawn implementation details
-- 📑 Completed Makefile help section
+### Features
+- **Graveyard System**: Added captured piece tracking with point differential display
+- **UI Improvements**: Enhanced Burger menu and timer styling
+- **AI Enhancements**: Better move logic and validation systems
+- **Architecture**: Introduced MoveData class for consistent move handling
 
-## [Initial Release] - 2025-08-05
+### Technical
+- Split codebase into more modular structure
+- Created new components and hooks for better separation of concerns
 
-### 🎉 Initial Commit
-- 🌱 Project initialization
-- 🔒 Added SAST configuration in `.gitlab-ci.yml`
+## [2025-08-19] - Version 1.1.0
+
+### Features
+- **Castling**: Implemented complete castling logic with king and rook movement
+- **PGN Notation**: Enhanced move recording with castle notation support
+- **Referee System**: Added comprehensive game referee for state management
+- **Theme Default**: Set default theme to 'mystical-hd'
+
+### Fixes
+- Improved error logging for missing entity images
+- Added Opera browser launch configuration
+
+## [2025-08-18] - Version 1.0.0
+
+### Major Features
+- **Classic Theme**: Added new classic chess theme
+- **PGN System**: Complete PGN notation implementation with move counting
+- **Move Highlighting**: Visual indicators for last moves
+- **Check Detection**: Implemented isCheck validation for moves
+
+### UI/UX
+- **Fantasy Logo**: Improved logo design and visual appeal
+- **Move Suggestions**: Separate styles for player and opponent valid moves
+- **Selected Square**: Enhanced visual feedback for selected pieces
+
+## [2025-08-17] - Version 0.9.0
+
+### Core Features
+- **Theming System**: Multiple themes (mystical, mystical-hd, first-blood, hanna)
+- **Timer System**: Countdown timer with visual warnings
+- **Victory Conditions**: Checkmate, stalemate, and timeout handling
+- **AI Foundation**: Basic AI with random moves and opening book
+- **Game Modes**: Player vs Player and Player vs AI options
+
+### Technical
+- **Entity System**: Complete chess piece logic implementation
+- **Move Validation**: Comprehensive move validation with check prevention
+- **En Passant**: Fixed en passant move handling and PGN notation
+
+## [2025-08-16] - Version 0.8.0
+
+### Initial Release
+- **Basic Chess Game**: Complete chess functionality
+- **Piece Movement**: All chess pieces with proper movement rules
+- **Board System**: Interactive chess board with visual feedback
+- **Theme Support**: Multiple visual themes
+- **Responsive Design**: Mobile-friendly interface
+
+### Infrastructure
+- **Build System**: Makefile with development and production commands
+- **Versioning**: Automated version bump system
+- **CI/CD**: GitLab CI configuration for SAST
+- **Documentation**: Comprehensive README and project structure
+
+## Earlier Development (2025-08-05 to 2025-08-15)
+
+- Project initialization and foundation
+- Basic React setup and component structure
+- Core chess logic implementation
+- Asset creation and theme development
+- Initial AI experimentation
+
+---
+
+*This CHANGELOG follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.*
