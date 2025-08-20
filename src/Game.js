@@ -5,7 +5,7 @@ import { GameModeSelection } from './components/Game/GameModeSelection';
 import { MoveHistory } from './components/Game/MoveHistory';
 import { TimerDisplay } from './components/TimerDisplay';
 import { useChessTimer } from './hooks/useChessTimer';
-import { useAIController } from './components/Game/AIController';
+import { useAIController } from './logic/AIController';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Referee from './logic/Referee';
 import Entity from './logic/Entity';
@@ -22,10 +22,11 @@ export default function Game() {
   const [gameStatus, setGameStatus] = useState('playing');
   const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
-
+  const [isAiAggressive, setIsAiAggressive] = useState(true);
   const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({
     gameMode,
     aiDifficulty,
+    isAiAggressive,
     referee,
     gameStatus
   });
@@ -60,13 +61,17 @@ export default function Game() {
     };
   };
 
-  function startNewGame(mode) {
+  function startNewGame(mode, difficulty = 'easy', aggressive = true) {
     referee.reset();
     resetTimer();
     startTimer(referee.getCurrentPlayer(), onTimeout);
     setGameMode(mode);
+    setAiDifficulty(difficulty);
+    setIsAiAggressive(aggressive);
     setGameStatus('playing');
     setWinner(null);
+    setCapturedByWhite([]);
+    setCapturedByBlack([]);
   }
 
   function handleMove(moveData) {
@@ -117,7 +122,7 @@ export default function Game() {
     return true;
   }
 
-    function startNewGame(mode) {
+  function startNewGame(mode) {
     referee.reset();
     resetTimer();
     startTimer(referee.getCurrentPlayer(), onTimeout);

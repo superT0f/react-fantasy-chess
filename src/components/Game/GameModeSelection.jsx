@@ -2,12 +2,13 @@ import { useState } from 'react';
 
 export function GameModeSelection({ onStartNewGame }) {
   const [aiDifficulty, setAiDifficulty] = useState('easy');
+  const [isAggressive, setIsAggressive] = useState(true);
 
   return (
     <div className="mode-selection">
       <h2>Select Game Mode</h2>
       <div className="mode-options">
-        <button onClick={() => onStartNewGame('ai')}>Play vs AI</button>
+        <button onClick={() => onStartNewGame('ai', aiDifficulty, isAggressive)}>Play vs AI</button>
         <button onClick={() => onStartNewGame('pvp')}>locale two players</button>
       </div>
       <div className="ai-difficulty">
@@ -20,6 +21,16 @@ export function GameModeSelection({ onStartNewGame }) {
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>
         </select>
+      </div>
+      <div className="ai-aggressivity">
+        <label>
+          <input
+            type="checkbox"
+            checked={isAggressive}
+            onChange={(e) => setIsAggressive(e.target.checked)}
+          />
+          Aggressive AI
+        </label>
       </div>
     </div>
   );

@@ -109,6 +109,68 @@ export default class Referee {
     return moves;
   }
 
+  getAllValidMovesForPlayer(player, enPassantTarget = null, scoreMoves = false, moveQualityEstimator = null) {
+    const moves = [];
+    const squares = this.getCurrentBoard();
+
+    for (let from = 0; from < 64; from++) {
+      const entityChar = squares[from];
+      if (entityChar && this.getSquareColor(from) === player) {
+        const validTargets = this.getAllValidMoves(from, enPassantTarget);
+
+        validTargets.forEach(to => {
+          const move = {
+            from,
+            to,
+            entity: entityChar
+          };
+
+          if (scoreMoves && moveQualityEstimator) {
+            move.score = moveQualityEstimator(from, to, squares);
+          }
+
+          moves.push(move);
+        });
+      }
+    }
+
+    return scoreMoves ? moves.sort((a, b) => (b.score || 0) - (a.score || 0)) : moves;
+  }
+
+
+  getValidMovesForPiece(entity, from, squares, enPassantTarget = null) {
+    const validMoves = [];
+
+    // Check all 64 squares for valid moves
+    for (let to = 0; to < 64; to++) {
+      if (from === to) continue;
+
+      try {
+        // Create a new entity instance for each position check
+        const entityCopy = Entity.fromChar(
+          entity.getSymbol(),
+          from,
+          squares,
+          enPassantTarget
+        );
+
+        if (entityCopy.isValidMove(to)) {
+          // Additional safety check - make sure the move doesn't leave king in check
+          const simulatedBoard = Entity.simulateMove(squares, from, to);
+          const playerColor = Entity.getColorByEntity(entity.getSymbol());
+
+          if (!Entity.isCheck(simulatedBoard, playerColor)) {
+            validMoves.push(to);
+          }
+        }
+      } catch (error) {
+        console.warn(`Error checking move ${from}->${to}:`, error);
+      }
+    }
+
+    return validMoves;
+  }
+
   simulateMove(squares, from, to) {
     const newSquares = [...squares];
     newSquares[to] = newSquares[from];
@@ -153,14 +215,14 @@ export default class Referee {
       newState.selectedSquare = squareIndex;
       newState.validMoves = this.getAllValidMoves(squareIndex, currentState.enPassantTarget);
       newState.isOpponentPiece = false;
-    }else{
+    } else {
       console.warn('Invalid square click:', squareIndex, 'Selected:', selectedSquare);
     }
 
     return { newState, moveData: null };
   }
 
-recordMove(moveData) {
+  recordMove(moveData) {
     let newSquares = [...moveData.squares];
 
     if (moveData.isCastle) {
@@ -195,7 +257,7 @@ recordMove(moveData) {
       captured: moveData.captured,
       isCastle: moveData.isCastle
     });
-    
+
     this.currentMoveIndex++;
     this.turn = this.turn === 'white' ? 'black' : 'white';
   }
@@ -214,6 +276,11 @@ recordMove(moveData) {
   getCurrentOpponent() {
     return this.turn === 'white' ? 'black' : 'white';
   }
+
+  getOpponent(player) {
+    return player === 'white' ? 'black' : 'white';
+  }
+  
   getCurrentMove() {
     return this.currentMove;
   }
