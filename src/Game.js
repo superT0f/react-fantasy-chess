@@ -20,14 +20,14 @@ export default function Game() {
   const [gameStatus, setGameStatus] = useState('playing');
   const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
-  
-  const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({ 
-    gameMode, 
-    aiDifficulty, 
-    referee, 
-    gameStatus 
+
+  const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({
+    gameMode,
+    aiDifficulty,
+    referee,
+    gameStatus
   });
-  
+
   const {
     timeLeft,
     currentPlayer: timerPlayer,
@@ -48,12 +48,12 @@ export default function Game() {
 
   function handleMove(moveData) {
     if (gameStatus !== 'playing') return false;
-    
+
     const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
     const { squares, isFromIA } = moveData;
 
     const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
-    const isOpponentInStalemate = !isOpponentInCheckmate && 
+    const isOpponentInStalemate = !isOpponentInCheckmate &&
       Entity.isStalemate(squares, opponent);
 
     if (isOpponentInCheckmate) {
@@ -75,7 +75,7 @@ export default function Game() {
       notation: referee.getLastMove().pgn
     });
 
-    if (gameMode === 'ai' && !isFromIA) {
+    if (gameMode === 'ai' && !isFromIA && referee.getCurrentPlayer() === 'black') {
       setIsAiThinking(true);
       setTimeout(() => {
         makeAiMove(squares, handleMove);

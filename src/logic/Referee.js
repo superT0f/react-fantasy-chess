@@ -119,7 +119,7 @@ export default class Referee {
   handleSquareClick(squareIndex, currentState) {
     const { selectedSquare, validMoves } = currentState;
     const newState = { ...currentState };
-    let isCastle = false; // Ajouter cette variable
+    let isCastle = false;
 
     if (selectedSquare !== null) {
       const entity = this.isValidMove(
@@ -146,13 +146,15 @@ export default class Referee {
           }
         };
       } else {
-        newState.selectedSquare = null;
+        newState.selectedSquare = squareIndex;
         newState.validMoves = [];
       }
     } else if (this.getSquareColor(squareIndex) === this.turn) {
       newState.selectedSquare = squareIndex;
       newState.validMoves = this.getAllValidMoves(squareIndex, currentState.enPassantTarget);
       newState.isOpponentPiece = false;
+    }else{
+      console.warn('Invalid square click:', squareIndex, 'Selected:', selectedSquare);
     }
 
     return { newState, moveData: null };

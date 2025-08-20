@@ -24,9 +24,7 @@ export function useBoardState(referee, onMove) {
     if (moveData) {
       const newSquares = [...referee.getCurrentBoard()];
       const captured = newSquares[moveData.to];
-      
-      newSquares[moveData.to] = newSquares[moveData.from];
-      newSquares[moveData.from] = '';
+
 
       if (moveData.isCastle) {
         const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
@@ -34,9 +32,13 @@ export function useBoardState(referee, onMove) {
         const rookToCol = direction === 1 ? 5 : 3;
         const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
         const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
-
-        newSquares[rookTo] = newSquares[rookFrom];
-        newSquares[rookFrom] = '';
+        
+        newSquares[moveData.to] = newSquares[moveData.from];
+        newSquares[rookTo] = referee.getSquare(rookFrom);
+        newSquares[moveData.from] = '';
+      } else {
+        newSquares[moveData.to] = newSquares[moveData.from];
+        newSquares[moveData.from] = '';
       }
 
       const moveDataObj = new MoveData({

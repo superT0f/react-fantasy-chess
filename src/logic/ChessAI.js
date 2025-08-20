@@ -3,36 +3,48 @@ import PgnNotation from './PgnNotation';
 import Entity from './Entity';
 
 export default class ChessAI {
-    static getRandomMove(moveHistory, squares, player) {
+    static getRandomMove(referee, squares, player) {
         if (player !== 'black') {
             throw new Error('AI can only play as black');
         }
-        if (moveHistory.length < 10) {
-            const openingMove = this.getBookMove(moveHistory);
-            if (openingMove) return openingMove;
+        if (referee.getHistory().length < 10) {
+            const openingMove = this.getBookMove(referee.getHistory());
+            if (openingMove) {
+                const entityChar = squares[openingMove.from];
+
+                const entity = Entity.fromChar(entityChar, openingMove.from, squares);
+                if (entity.isValidMove(openingMove.to)) {
+                    const simulatedBoard = Entity.simulateMove(
+                        squares,
+                        openingMove.from,
+                        openingMove.to);
+                    if (!Entity.isCheck(simulatedBoard, player)) {
+                        return openingMove;
+                    }
+                } else {
+                    console.warn(`openning move is not valid : ${openingMove.from}->${openingMove.to}`)
+                }
+
+            }
         }
         const validMoves = [];
 
         for (let from = 0; from < 64; from++) {
             const entityChar = squares[from];
-            if (entityChar && Entity.getColorByEntity(entityChar) === player) {
+            if (referee.getSquareColor(from) === player) {
                 const entity = Entity.fromChar(entityChar, from, squares);
-                for (let to = 0; to < 64; to++) {
-                    let enPassantTarget = entity.enPassantTarget;
-                    if (entity.isValidMove(to)) {
-                        const simulatedBoard = Entity.simulateMove(squares, from, to);
-                        if (!Entity.isCheck(simulatedBoard, player)) {
-                            validMoves.push({ from, to , enPassantTarget});
-                        }
-                    }
-                }
+                let enPassantTarget = entity.enPassantTarget;
+                referee.getAllValidMoves(from, enPassantTarget).forEach((to) => {
+                    validMoves.push({ from, to, enPassantTarget });
+                });
             }
         }
 
         if (validMoves.length > 0) {
             const randomIndex = Math.floor(Math.random() * validMoves.length);
-
             return validMoves[randomIndex];
+        } else {
+            console.warn('No valid moves found for AI');
         }
 
         return null;

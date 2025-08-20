@@ -1,7 +1,6 @@
 import BaseEntity from '../BaseEntity';
 import Entity from '../Entity';
 
-
 export default class King extends BaseEntity {
   isValidMove(to) {
     const toRow = Math.floor(to / 8);
@@ -22,7 +21,7 @@ export default class King extends BaseEntity {
 
   canCastle(to) {
     const toCol = to % 8;
-    const direction = toCol > this.fromCol ? 1 : -1; // 1 pour petit roque, -1 pour grand roque
+    const direction = toCol > this.fromCol ? 1 : -1; // 1 => O-O, -1 => O-O-O
     const rookCol = direction === 1 ? 7 : 0;
     const rookPos = this.fromRow * 8 + rookCol;
     const rook = this.squares[rookPos];
