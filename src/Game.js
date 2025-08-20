@@ -42,7 +42,6 @@ export default function Game() {
   const [capturedByWhite, setCapturedByWhite] = useState([]);
   const [capturedByBlack, setCapturedByBlack] = useState([]);
 
-  // Fonction pour calculer la différence de points
   const computeGraveDiff = () => {
     const eValues = {
       'p': 1, 'P': 1,
@@ -80,7 +79,6 @@ export default function Game() {
     const isOpponentInStalemate = !isOpponentInCheckmate &&
       Entity.isStalemate(squares, opponent);
 
-    // Gérer les pièces capturées
     if (moveData.captured) {
       if (referee.getCurrentPlayer() === 'white') {
         setCapturedByBlack(prev => [...prev, moveData.captured]);
@@ -109,8 +107,8 @@ export default function Game() {
 
     if (gameMode === 'ai' && !isFromIA && referee.getCurrentPlayer() === 'black') {
       setIsAiThinking(true);
+      makeAiMove(squares, handleMove);
       setTimeout(() => {
-        makeAiMove(squares, handleMove);
         setIsAiThinking(false);
       }, 500);
     }
