@@ -5,11 +5,14 @@ import Game from './Game';
 import Footer from './components/Footer';
 import "./styles.css";
 import { ThemeProvider } from "./context/ThemeContext";
+import Burger from './components/Burger';
+
 const root = createRoot(document.getElementById("root"));
 root.render(
   <StrictMode>
     <ThemeProvider>
       <Logo />
+      <Burger />
       <Game />
       <Footer />
     </ThemeProvider>

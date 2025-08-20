@@ -1,8 +1,8 @@
 const Logo = () => {
   return (
-    <div style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
+    <><div style={{
+      display: 'flex',
+      alignItems: 'center',
       justifyContent: 'center',
       fontFamily: "'Cinzel', serif",
       fontWeight: 700,
@@ -17,18 +17,14 @@ const Logo = () => {
       position: 'relative',
       overflow: 'hidden'
     }}>
-      
-{/* Texte avec effet de relief */}
       <div style={{ position: 'relative', zIndex: 2 }}>
-        <span style={{ 
+        <span style={{
           position: 'relative',
           letterSpacing: '10px'
         }}>
           FANTASY CHESS
         </span>
       </div>
-      
-      {/* Pièces d'échecs décoratives */}
       <div style={{
         position: 'absolute',
         bottom: '-25px',
@@ -51,8 +47,10 @@ const Logo = () => {
         border: '2px solid #d4af37',
         boxShadow: '0 0 8px rgba(212, 175, 55, 0.7)'
       }}></div>
+      
     </div>
-  );
+    
+    </>);
 };
 
 export default Logo;

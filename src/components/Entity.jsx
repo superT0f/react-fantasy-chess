@@ -1,9 +1,7 @@
 import React from 'react';
-import { useTheme } from '../context/ThemeContext';
 
 const EntityUI = ({ entity }) => {
-  const { theme } = useTheme();
-
+  const theme = localStorage.getItem('chessTheme') || 'classic';
   if (!entity) return null;
 
   const color = entity === entity.toUpperCase() ? 'w' : 'b';

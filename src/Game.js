@@ -120,15 +120,10 @@ export default function Game() {
             />
 
             {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
-
             <div className="board-container">
-              <TimerDisplay
-                timeLeft={timeLeft}
-                formatTime={formatTime}
-                currentPlayer={referee.getCurrentPlayer()}
-              />
-
               <div className="game-content">
+
+
                 <div className="game-board">
                   <Board
                     onMove={handleMove}
@@ -137,7 +132,11 @@ export default function Game() {
                     referee={referee}
                   />
                 </div>
-
+                <TimerDisplay
+                  timeLeft={timeLeft}
+                  formatTime={formatTime}
+                  currentPlayer={referee.getCurrentPlayer()}
+                />
                 <div className="game-info">
                   <MoveHistory
                     history={referee.getHistory()}
