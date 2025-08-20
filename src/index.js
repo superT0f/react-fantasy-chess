@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import Logo from './components/Logo';
 import Game from './Game';
 import Footer from './components/Footer';
-import "./styles.css";
+import "./assets/styles.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import Burger from './components/Burger';
 

@@ -11,6 +11,8 @@ import Referee from './logic/Referee';
 import Entity from './logic/Entity';
 import PgnNotation from './logic/PgnNotation';
 import MoveData from './logic/MoveData';
+import { Graveyard } from './components/Graveyard';
+
 
 export default function Game() {
   const { theme } = useTheme();
@@ -37,6 +39,28 @@ export default function Game() {
     resetTimer
   } = useChessTimer(600);
 
+  const [capturedByWhite, setCapturedByWhite] = useState([]);
+  const [capturedByBlack, setCapturedByBlack] = useState([]);
+
+  // Fonction pour calculer la différence de points
+  const computeGraveDiff = () => {
+    const eValues = {
+      'p': 1, 'P': 1,
+      'n': 3, 'N': 3,
+      'b': 3, 'B': 3,
+      'r': 5, 'R': 5,
+      'q': 10, 'Q': 10
+    };
+
+    const whiteScore = capturedByWhite.reduce((sum, piece) => sum + (eValues[piece] || 0), 0);
+    const blackScore = capturedByBlack.reduce((sum, piece) => sum + (eValues[piece] || 0), 0);
+
+    return {
+      white: whiteScore - blackScore,
+      black: blackScore - whiteScore
+    };
+  };
+
   function startNewGame(mode) {
     referee.reset();
     resetTimer();
@@ -56,6 +80,14 @@ export default function Game() {
     const isOpponentInStalemate = !isOpponentInCheckmate &&
       Entity.isStalemate(squares, opponent);
 
+    // Gérer les pièces capturées
+    if (moveData.captured) {
+      if (referee.getCurrentPlayer() === 'white') {
+        setCapturedByBlack(prev => [...prev, moveData.captured]);
+      } else {
+        setCapturedByWhite(prev => [...prev, moveData.captured]);
+      }
+    }
     if (isOpponentInCheckmate) {
       setGameStatus('checkmate');
       setWinner(referee.getCurrentPlayer());
@@ -86,6 +118,19 @@ export default function Game() {
     switchPlayer(opponent, onTimeout);
     return true;
   }
+
+    function startNewGame(mode) {
+    referee.reset();
+    resetTimer();
+    startTimer(referee.getCurrentPlayer(), onTimeout);
+    setGameMode(mode);
+    setGameStatus('playing');
+    setWinner(null);
+    setCapturedByWhite([]);
+    setCapturedByBlack([]);
+  }
+
+  const graveDiff = computeGraveDiff();
 
   const onTimeout = () => {
     setGameStatus('timeout');
@@ -122,8 +167,11 @@ export default function Game() {
             {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
             <div className="board-container">
               <div className="game-content">
-
-
+                <Graveyard
+                  captured={capturedByBlack}
+                  player="black"
+                  graveDiff={graveDiff.black > 0 ? graveDiff.black : 0}
+                />
                 <div className="game-board">
                   <Board
                     onMove={handleMove}
@@ -132,6 +180,13 @@ export default function Game() {
                     referee={referee}
                   />
                 </div>
+
+                <Graveyard
+                  captured={capturedByWhite}
+                  player="white"
+                  graveDiff={graveDiff.white > 0 ? graveDiff.white : 0}
+                />
+
                 <TimerDisplay
                   timeLeft={timeLeft}
                   formatTime={formatTime}
