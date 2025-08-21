@@ -19,10 +19,10 @@ export default class ChessAI {
                 searchDepth = 4;
                 break;
             case 'medium':
-                searchDepth = 15;
+                searchDepth = 8;
                 break;
             case 'hard':
-                searchDepth = 20;
+                searchDepth = 10;
                 break;
             default:
                 searchDepth = 4;
@@ -322,8 +322,8 @@ export default class ChessAI {
         for (let i = 0; i < 64; i++) {
             const piece = squares[i];
             if (piece && Entity.getColorByEntity(piece) === color) {
-                const entity = Entity.fromChar(piece, i, squares);
-                if (entity.isValidMove(square)) {
+                const entity = Entity.fromChar(this.referee, i);
+                if (entity && entity.isValidMove(square)) {
                     return true;
                 }
             }
@@ -348,8 +348,7 @@ export default class ChessAI {
         // Check if file has no pawns
         for (let row = 0; row < 8; row++) {
             const idx = row * 8 + col;
-            const piece = squares[idx];
-            if (piece && piece.toLowerCase() === 'p') {
+            if (squares[idx] && squares[idx].toLowerCase() === 'p') {
                 return false;
             }
         }
@@ -371,7 +370,7 @@ export default class ChessAI {
             if (openingMove) {
                 const entityChar = squares[openingMove.from];
 
-                const entity = Entity.fromChar(entityChar, openingMove.from, squares);
+                const entity = Entity.fromChar(referee, openingMove.from);
                 if (entity.isValidMove(openingMove.to)) {
                     const simulatedBoard = Entity.simulateMove(
                         squares,
@@ -391,7 +390,7 @@ export default class ChessAI {
         for (let from = 0; from < 64; from++) {
             const entityChar = squares[from];
             if (referee.getSquareColor(from) === player) {
-                const entity = Entity.fromChar(entityChar, from, squares);
+                const entity = Entity.fromChar(referee, from);
                 let enPassantTarget = entity.enPassantTarget;
                 referee.getAllValidMoves(from, enPassantTarget).forEach((to) => {
                     validMoves.push({ from, to, enPassantTarget });

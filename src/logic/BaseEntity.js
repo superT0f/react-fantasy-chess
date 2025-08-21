@@ -2,17 +2,21 @@ import Entity from './Entity';
 import PgnNotation from './PgnNotation';
 
 export default class BaseEntity {
-  constructor(type, color, position, squares,
-    enPassantTarget = null, lastDoubleStepPawn = null) {
-    this.type = type.toLowerCase();
-    this.color = color;
+  constructor(referee, position) {
+    this.referee = referee;
     this.position = position;
-    this.hasMoved = false;
-    this.fromRow = Math.floor(this.position / 8);
-    this.fromCol = this.position % 8;
-    this.squares = squares;
-    this.enPassantTarget = enPassantTarget;
-    this.lastDoubleStepPawn = lastDoubleStepPawn;
+  }
+
+  get squares() {
+    return this.referee.getCurrentBoard();
+  }
+
+  setType(newType) {
+    this.type =newType;
+  }
+
+  setColor(newColor) {
+    this.color = newColor;
   }
 
   isPathClear(to) {
@@ -34,7 +38,7 @@ export default class BaseEntity {
       currentRow += rowStep;
       currentCol += colStep;
     }
-    
+
     return this.squares[to] === '' ||
       Entity.getColorByEntity(this.squares[to]) !== this.color;
   }
@@ -53,13 +57,10 @@ export default class BaseEntity {
   }
 
   isEnPassant(to) {
-    // En Passant is a special pawn move, so only pawns can perform it
-    // @see Implementation in Pawn subclasses
     return false;
   }
 
   isValidMove(to) {
-    // @see Implementation in subclasses
     throw new Error('isValidMove must be implemented in subclasses');
   }
 }

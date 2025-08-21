@@ -1,4 +1,3 @@
-
 import Pawn from "./Pawn";
 import Rook from "./pieces/Rook";
 import Knight from "./pieces/Knight";
@@ -9,48 +8,53 @@ import BaseEntity from './BaseEntity';
 import PgnNotation from "./PgnNotation";
 
 export default class Entity extends BaseEntity {
+  constructor(referee, position) {
+    super(referee, position);
+
+    
+    this.color = this.referee.getSquareColor(this.position) || '';
+    this.type = this.referee.getSquare(this.position)?.toLowerCase() || '';
+    this.hasMoved = false;
+    this.fromRow = Math.floor(this.position / 8);
+    this.fromCol = this.position % 8;
+    this.hasMoved = false;
+
+    console.log(`entity : ${this.position} - ${this.type} - ${this.color}`)
+    assets.assert(['white', 'black'].includes(this.color), 'Invalid color');
+    assets.assert(
+      Number.isInteger(this.position)
+      && this.position >= 0
+      && this.position < 64, 'Invalid position');
+  }
+
   static getColorByEntity(entity) {
     if (!entity) return null;
     return entity === entity.toUpperCase() ? 'white' : 'black';
   }
 
-  static fromChar(c, position, squares, enPassantTarget) {
-    const type = c.toLowerCase();
-    const color = c === c.toUpperCase() ? 'white' : 'black';
+  static fromChar(referee, position) {
+    if (!referee) return null;
+    const entityChar = referee.getSquare(position);
+    if (!entityChar) return null;
+
+    const type = entityChar.toLowerCase();
 
     switch (type) {
       case 'p':
-        return new Pawn(
-          type, color, position, squares, enPassantTarget);
+        return new Pawn(referee, position);
       case 'r':
-        return new Rook(
-          type, color, position, squares);
+        return new Rook(referee, position);
       case 'n':
-        return new Knight(
-          type, color, position, squares);
+        return new Knight(referee, position);
       case 'b':
-        return new Bishop(
-          type, color, position, squares);
+        return new Bishop(referee, position);
       case 'q':
-        return new Queen(
-          type, color, position, squares);
+        return new Queen(referee, position);
       case 'k':
-        return new King(
-          type, color, position, squares);
+        return new King(referee, position);
       default:
         throw new Error(`Unknown entity type: ${type}`);
     }
-  }
-  constructor(type, color, position) {
-    this.type = type.toLowerCase();
-    this.color = color;
-    assets.assert(['white', 'black'].includes(this.color), 'Invalid color');
-    this.position = position;
-    assets.assert(Number.isInteger(this.position) && this.position >= 0 && this.position < 64, 'Invalid position');
-    this.hasMoved = false;
-
-    this.fromRow = Math.floor(this.position / 8);
-    this.fromCol = this.position % 8;
   }
 
   static isCheck(squares, player) {
@@ -63,7 +67,7 @@ export default class Entity extends BaseEntity {
     for (let i = 0; i < 64; i++) {
       const piece = squares[i];
       if (piece && Entity.getColorByEntity(piece) !== player) {
-        const entity = Entity.fromChar(piece, i, squares);
+        const entity = Entity.fromChar(this.referee, i);
         if (entity && entity.isValidMove(kingPosition)) {
           return true;
         }
@@ -75,9 +79,12 @@ export default class Entity extends BaseEntity {
     if (Entity.isCheck(squares, player)) return false;
 
     for (let from = 0; from < 64; from++) {
-      const piece = squares[from];
-      if (piece && Entity.getColorByEntity(piece) === player) {
-        const entity = Entity.fromChar(piece, from, squares);
+      const entityChar = squares[from];
+      const squareColor = Entity.getColorByEntity(entityChar);
+      const entity = Entity.fromChar(this.referee, from);
+
+      if (entity && squareColor === player) {
+
         for (let to = 0; to < 64; to++) {
           if (entity.isValidMove(to)) {
             const simulatedBoard = Entity.simulateMove(squares, from, to);
@@ -95,9 +102,8 @@ export default class Entity extends BaseEntity {
 
     // check is there any legal move?
     for (let from = 0; from < 64; from++) {
-      const piece = squares[from];
-      if (piece && this.getColorByEntity(piece) === player) {
-        const entity = this.fromChar(piece, from, squares);
+      if (this.referee.getSquareColor(from) === player) {
+        const entity = this.fromChar(this.referee, from);
 
         for (let to = 0; to < 64; to++) {
           if (entity.isValidMove(to)) {

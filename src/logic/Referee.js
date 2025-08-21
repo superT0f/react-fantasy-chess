@@ -83,8 +83,7 @@ export default class Referee {
     if (toEntity && Entity.getColorByEntity(toEntity) === Entity.getColorByEntity(entityChar)) {
       return false;
     }
-
-    const entity = Entity.fromChar(entityChar, from, this.getCurrentBoard(), enPassantTarget);
+    const entity = Entity.fromChar(this, from);
     if (!entity) return false;
 
     if (entity.isValidMove(to)) {
@@ -147,13 +146,7 @@ export default class Referee {
 
       try {
         // Create a new entity instance for each position check
-        const entityCopy = Entity.fromChar(
-          entity.getSymbol(),
-          from,
-          squares,
-          enPassantTarget
-        );
-
+        const entityCopy = Entity.fromChar(this, from);
         if (entityCopy.isValidMove(to)) {
           // Additional safety check - make sure the move doesn't leave king in check
           const simulatedBoard = Entity.simulateMove(squares, from, to);
