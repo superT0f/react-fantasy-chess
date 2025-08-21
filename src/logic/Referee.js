@@ -72,14 +72,14 @@ export default class Referee {
     return null;
   }
 
-  isValidMove(from, to, enPassantTarget) {
+  isValidMove(from, to, enPassantTarget = '') {
     if (from === to) return false;
     const squares = this.getCurrentBoard();
     const entityChar = squares[from];
     const toEntity = squares[to];
 
     if (!entityChar) return false;
-    
+
     if (toEntity && Entity.getColorByEntity(toEntity) === Entity.getColorByEntity(entityChar)) {
       return false;
     }
@@ -87,17 +87,25 @@ export default class Referee {
     if (!entity) return false;
 
     if (entity.isValidMove(to)) {
-      const simulatedBoard = this.simulateMove(this.getCurrentBoard(), from, to);
+      const isCastle = entity.type === 'k' && Math.abs(to % 8 - from % 8) === 2;
+      const isEnPassant = entity && entity.isEnPassant(to);
+
+      const simulatedBoard = this.simulateMove(
+        this.getCurrentBoard(),
+        from,
+        to,
+        isCastle,
+        isEnPassant
+      );
+
       const isCheck = Entity.isCheck(simulatedBoard, this.turn) ? entity : false;
       return !isCheck;
-    }else {
-      Log.debug(`isValidMove = not valid : ${PgnNotation.idxToXY(from)} -> ${PgnNotation.idxToXY(to)}`)
     }
 
     return false;
   }
 
-  getAllValidMoves(from, enPassantTarget) {
+  getAllValidMoves(from, enPassantTarget = '') {
     const moves = [];
 
     if (!this.getCurrentBoard()[from]) return moves;
@@ -167,8 +175,46 @@ export default class Referee {
     return validMoves;
   }
 
-  simulateMove(squares, from, to) {
+  simulateMove(squares, from, to, isCastle = false, isEnPassant = false) {
     const newSquares = [...squares];
+
+    // Handle castling
+    if (isCastle) {
+      const direction = to % 8 > from % 8 ? 1 : -1;
+      const rookFromCol = direction === 1 ? 7 : 0;
+      const rookToCol = direction === 1 ? 5 : 3;
+      const rookFrom = Math.floor(from / 8) * 8 + rookFromCol;
+      const rookTo = Math.floor(from / 8) * 8 + rookToCol;
+
+      // Move the king
+      newSquares[to] = newSquares[from];
+      newSquares[from] = '';
+
+      // Move the rook
+      newSquares[rookTo] = newSquares[rookFrom];
+      newSquares[rookFrom] = '';
+
+      return newSquares;
+    }
+
+    // Handle en passant
+    if (isEnPassant) {
+      const entityChar = newSquares[from];
+      const color = Entity.getColorByEntity(entityChar);
+      const direction = color === 'white' ? -1 : 1;
+      const targetPawn = to + 8 * direction;
+
+      // Move the pawn
+      newSquares[to] = newSquares[from];
+      newSquares[from] = '';
+
+      // Remove the captured pawn
+      newSquares[targetPawn] = '';
+
+      return newSquares;
+    }
+
+    // Regular move
     newSquares[to] = newSquares[from];
     newSquares[from] = '';
     return newSquares;
@@ -231,6 +277,12 @@ export default class Referee {
       newSquares[rookTo] = newSquares[rookFrom];
       newSquares[rookFrom] = '';
     }
+    // the enPassant take the opponent pawn
+    if (moveData.isEnPassant) {
+      const direction = (this.player === 'white') ? -1 : 1;
+      const targetPawn = moveData.to + 8 * direction;
+      newSquares[targetPawn] = '';
+    }
 
     const entityChar = this.getSquare(moveData.from);
     const pgn = PgnNotation.getMoveNotation(
@@ -276,7 +328,7 @@ export default class Referee {
   getOpponent(player) {
     return player === 'white' ? 'black' : 'white';
   }
-  
+
   getCurrentMove() {
     return this.currentMove;
   }
@@ -284,5 +336,21 @@ export default class Referee {
   jumpTo(move) {
     this.currentMove = move;
     return this.history[move]?.squares || null;
+  }
+
+  isStalemate(squares, player) {
+    return false;
+    if (Entity.isCheck(squares, player)) return false;
+
+    for (let from = 0; from < 64; from++) {
+      const entityChar = squares[from];
+      const squareColor = Entity.getColorByEntity(entityChar);
+      const entity = Entity.fromChar(this.referee, from);
+
+      if (entity && squareColor === player &&
+        this.getAllValidMoves(from).length > 0)
+        return false;
+    }
+    return true;
   }
 }

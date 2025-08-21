@@ -12,7 +12,7 @@ export default class Entity extends BaseEntity {
   constructor(referee, position) {
     super(referee, position);
 
-    
+
 
 
     // console.log(`entity : ${this.position} - ${this.type} - ${this.color}`);
@@ -67,37 +67,19 @@ export default class Entity extends BaseEntity {
       const piece = squares[i];
       if (piece && Entity.getColorByEntity(piece) !== player) {
         const entity = Entity.fromChar(this.referee, i);
-        if (entity && entity.isValidMove(kingPosition)) {
-          Log.debug(`${entity} can move to ${kingPosition}`);
-          return true;
-        }
-      }
-    }
-    // Log.debug(`no check`);
-    return false;
-  }
-  static isStalemate(squares, player) {
-    if (Entity.isCheck(squares, player)) return false;
 
-    for (let from = 0; from < 64; from++) {
-      const entityChar = squares[from];
-      const squareColor = Entity.getColorByEntity(entityChar);
-      const entity = Entity.fromChar(this.referee, from);
-
-      if (entity && squareColor === player) {
-
-        for (let to = 0; to < 64; to++) {
-          if (entity.isValidMove(to)) {
-            const simulatedBoard = Entity.simulateMove(squares, from, to);
-            if (!Entity.isCheck(simulatedBoard, player)) {
-              return false;
-            }
+        if (entity) {
+          entity.squares = squares;
+          if (entity.isValidMove(kingPosition)) {
+            Log.debug(`${entity} can move to ${kingPosition}`);
+            return true;
           }
         }
       }
     }
-    return true;
+    return false;
   }
+
   static isCheckmate(squares, player) {
     if (!this.isCheck(squares, player)) return false;
 

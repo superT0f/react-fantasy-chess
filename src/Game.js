@@ -88,7 +88,7 @@ function handleMove(moveData) {
   const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
   const { squares, isFromIA } = moveData;
   const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
-  const isOpponentInStalemate = !isOpponentInCheckmate && Entity.isStalemate(squares, opponent);
+  const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(squares, opponent);
 
   if (moveData.captured) {
     if (referee.getCurrentPlayer() === 'white') {
