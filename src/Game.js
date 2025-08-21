@@ -12,6 +12,7 @@ import Entity from './logic/Entity';
 import PgnNotation from './logic/PgnNotation';
 import MoveData from './logic/MoveData';
 import { Graveyard } from './components/Graveyard';
+import Log from './Log';
 
 
 export default function Game() {
@@ -62,6 +63,8 @@ export default function Game() {
   };
 
   function startNewGame(mode, difficulty = 'easy', aggressive = true) {
+    Log.debug(`startNewGame with mode:${mode}, difficulty:${difficulty}, aggressive:${aggressive}`);
+
     referee.reset();
     resetTimer();
     startTimer(referee.getCurrentPlayer(), onTimeout);
@@ -74,65 +77,60 @@ export default function Game() {
     setCapturedByBlack([]);
   }
 
-  function handleMove(moveData) {
-    if (gameStatus !== 'playing') return false;
-
-    const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
-    const { squares, isFromIA } = moveData;
-
-    const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
-    const isOpponentInStalemate = !isOpponentInCheckmate &&
-      Entity.isStalemate(squares, opponent);
-
-    if (moveData.captured) {
-      if (referee.getCurrentPlayer() === 'white') {
-        setCapturedByBlack(prev => [...prev, moveData.captured]);
-      } else {
-        setCapturedByWhite(prev => [...prev, moveData.captured]);
-      }
-    }
-    if (isOpponentInCheckmate) {
-      setGameStatus('checkmate');
-      setWinner(referee.getCurrentPlayer());
-      clearInterval(timerRef.current);
-    } else if (isOpponentInStalemate) {
-      setGameStatus('stalemate');
-      clearInterval(timerRef.current);
-    }
-
-    referee.recordMove(moveData);
-
-    setLastMove({
-      from: PgnNotation.idxToXY(moveData.from),
-      to: PgnNotation.idxToXY(moveData.to),
-      piece: referee.getSquare(moveData.from),
-      captured: moveData.captured,
-      notation: referee.getLastMove().pgn
-    });
-
-    if (gameMode === 'ai' && !isFromIA && referee.getCurrentPlayer() === 'black') {
-      setIsAiThinking(true);
-      makeAiMove(squares, handleMove);
-      setTimeout(() => {
-        setIsAiThinking(false);
-      }, 500);
-    }
-
-    switchPlayer(opponent, onTimeout);
-    return true;
+function handleMove(moveData) {
+  Log.debug(`handleMove, from: ${moveData.from}, to: ${moveData.to}`);
+  
+  if (gameStatus !== 'playing') {
+    Log.debug('Game not in playing state, ignoring move');
+    return false;
   }
 
-  function startNewGame(mode) {
-    referee.reset();
-    resetTimer();
-    startTimer(referee.getCurrentPlayer(), onTimeout);
-    setGameMode(mode);
-    setGameStatus('playing');
-    setWinner(null);
-    setCapturedByWhite([]);
-    setCapturedByBlack([]);
+  const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
+  const { squares, isFromIA } = moveData;
+  const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
+  const isOpponentInStalemate = !isOpponentInCheckmate && Entity.isStalemate(squares, opponent);
+
+  if (moveData.captured) {
+    if (referee.getCurrentPlayer() === 'white') {
+      setCapturedByBlack(prev => [...prev, moveData.captured]);
+    } else {
+      setCapturedByWhite(prev => [...prev, moveData.captured]);
+    }
+  }
+  
+  if (isOpponentInCheckmate) {
+    setGameStatus('checkmate');
+    setWinner(referee.getCurrentPlayer());
+    clearInterval(timerRef.current);
+  } else if (isOpponentInStalemate) {
+    setGameStatus('stalemate');
+    clearInterval(timerRef.current);
   }
 
+  referee.recordMove(moveData);
+
+  setLastMove({
+    from: PgnNotation.idxToXY(moveData.from),
+    to: PgnNotation.idxToXY(moveData.to),
+    piece: referee.getSquare(moveData.from),
+    captured: moveData.captured,
+    notation: referee.getLastMove().pgn
+  });
+
+  const newPlayer = referee.getCurrentPlayer();
+  switchPlayer(newPlayer, onTimeout);
+
+  if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
+    setIsAiThinking(true);
+    makeAiMove(squares, handleMove);
+
+    //setTimeout(() => {
+      setIsAiThinking(false);
+    //}, 500);
+  }
+
+  return true;
+}
   const graveDiff = computeGraveDiff();
 
   const onTimeout = () => {

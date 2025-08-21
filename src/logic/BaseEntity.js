@@ -5,6 +5,13 @@ export default class BaseEntity {
   constructor(referee, position) {
     this.referee = referee;
     this.position = position;
+
+    this.color = this.referee.getSquareColor(this.position) || '';
+    this.type = this.referee.getSquare(this.position)?.toLowerCase() || '';
+    this.hasMoved = false;
+    this.fromRow = Math.floor(this.position / 8);
+    this.fromCol = this.position % 8;
+    this.hasMoved = false;
   }
 
   get squares() {

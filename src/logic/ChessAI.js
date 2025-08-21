@@ -6,7 +6,7 @@ export default class ChessAI {
 
     static moveQualityEstimator = ChessAI.estimateMoveQuality;
 
-    // Optional: Allow custom estimators
+    // Allow custom estimators
     static setMoveQualityEstimator(estimator) {
         ChessAI.moveQualityEstimator = estimator;
     }
@@ -16,16 +16,16 @@ export default class ChessAI {
 
         switch (difficulty) {
             case 'easy':
-                searchDepth = 4;
+                searchDepth = 2;
                 break;
             case 'medium':
-                searchDepth = 8;
+                searchDepth = 4;
                 break;
             case 'hard':
-                searchDepth = 10;
+                searchDepth = 6;
                 break;
             default:
-                searchDepth = 4;
+                searchDepth = 2;
         }
 
         // Use book moves in opening / middle
@@ -120,8 +120,8 @@ export default class ChessAI {
     static evaluateBoard(squares, player) {
         let score = 0;
 
-        // Piece values
-        const pieceValues = {
+        // entities values
+        const values = {
             'p': 1, 'P': 1,
             'n': 3, 'N': 3,
             'b': 3, 'B': 3,
@@ -137,22 +137,21 @@ export default class ChessAI {
 
         // Material count
         for (let i = 0; i < 64; i++) {
-            const piece = squares[i];
-            if (!piece) continue;
+            if (!squares[i]) continue;
 
-            const pieceValue = pieceValues[piece] || 0;
-            const pieceColor = Entity.getColorByEntity(piece);
+            const enitityValue = values[squares[i]] || 0;
+            const enitityColor = Entity.getColorByEntity(squares[i]);
 
             // Add position bonuses
             let positionBonus = 0;
-            if (piece.toLowerCase() === 'p') {
+            if (squares[i].toLowerCase() === 'p') {
                 positionBonus = pawnPositionBonus[i] || 0;
             }
 
-            if (pieceColor === player) {
-                score += pieceValue + positionBonus;
+            if (enitityColor === player) {
+                score += enitityValue + positionBonus;
             } else {
-                score -= pieceValue + positionBonus;
+                score -= enitityValue + positionBonus;
             }
         }
 
@@ -166,7 +165,7 @@ export default class ChessAI {
 
     static estimateMoveQuality(from, to, squares) {
         let score = 0;
-        const pieceValue = {
+        const value = {
             'p': 1, 'P': 1,
             'n': 3, 'N': 3,
             'b': 3, 'B': 3,
@@ -176,7 +175,7 @@ export default class ChessAI {
         };
 
         const entityChar = squares[from];
-        const targetPiece = squares[to];
+        const target = squares[to];
         const entityType = entityChar.toLowerCase();
         const fromRow = Math.floor(from / 8);
         const fromCol = from % 8;
@@ -184,9 +183,9 @@ export default class ChessAI {
         const toCol = to % 8;
 
         // 1. Material evaluation (MVV-LVA)
-        if (targetPiece) {
-            const attackerValue = pieceValue[entityType] || 0;
-            const victimValue = pieceValue[targetPiece.toLowerCase()] || 0;
+        if (target) {
+            const attackerValue = value[entityType] || 0;
+            const victimValue = value[target.toLowerCase()] || 0;
             score += (victimValue * 10) - attackerValue;
 
             // Bonus for capturing with less valuable piece

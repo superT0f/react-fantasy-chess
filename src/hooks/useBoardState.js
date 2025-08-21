@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Entity from '../logic/Entity';
 import MoveData from '../logic/MoveData';
+import Log from '../Log';
 
 export function useBoardState(referee, onMove) {
   const [localState, setLocalState] = useState({
@@ -11,51 +12,55 @@ export function useBoardState(referee, onMove) {
     enPassantTarget: null
   });
 
-  const handleSquareClick = (squareIndex, gameStatus) => {
-    if (gameStatus !== 'playing') return;
+const handleSquareClick = (squareIndex, gameStatus) => {
+  if (gameStatus !== 'playing') {
+    Log.debug('Game not in playing state, ignoring click');
+    return;
+  }
 
-    const { newState, moveData } = referee.handleSquareClick(
-      squareIndex,
-      localState
-    );
+  const { newState, moveData } = referee.handleSquareClick(
+    squareIndex,
+    localState
+  );
 
-    setLocalState(newState);
+  setLocalState(newState);
 
-    if (moveData) {
-      const newSquares = [...referee.getCurrentBoard()];
-      const captured = newSquares[moveData.to];
+  if (moveData) {
+    const newSquares = [...referee.getCurrentBoard()];
+    const captured = newSquares[moveData.to];
 
-
-      if (moveData.isCastle) {
-        const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
-        const rookFromCol = direction === 1 ? 7 : 0;
-        const rookToCol = direction === 1 ? 5 : 3;
-        const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
-        const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
-        
-        newSquares[moveData.to] = newSquares[moveData.from];
-        newSquares[rookTo] = referee.getSquare(rookFrom);
-        newSquares[moveData.from] = '';
-      } else {
-        newSquares[moveData.to] = newSquares[moveData.from];
-        newSquares[moveData.from] = '';
-      }
-
-      const moveDataObj = new MoveData({
-        from: moveData.from,
-        to: moveData.to,
-        squares: newSquares,
-        captured,
-        isEnPassant: moveData.isEnPassant,
-        isCheck: Entity.isCheck(newSquares, referee.getCurrentPlayer()),
-        isCheckmate: Entity.isCheckmate(newSquares, referee.getCurrentOpponent()),
-        isCastle: moveData.isCastle,
-        isFromIA: false
-      });
-
-      onMove(moveDataObj);
+    if (moveData.isCastle) {
+      const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
+      const rookFromCol = direction === 1 ? 7 : 0;
+      const rookToCol = direction === 1 ? 5 : 3;
+      const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
+      const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
+      
+      newSquares[moveData.to] = newSquares[moveData.from];
+      newSquares[rookTo] = referee.getSquare(rookFrom);
+      newSquares[moveData.from] = '';
+    } else {
+      newSquares[moveData.to] = newSquares[moveData.from];
+      newSquares[moveData.from] = '';
     }
-  };
+
+    const moveDataObj = new MoveData({
+      from: moveData.from,
+      to: moveData.to,
+      squares: newSquares,
+      captured,
+      isEnPassant: moveData.isEnPassant,
+      isCheck: Entity.isCheck(newSquares, referee.getCurrentPlayer()),
+      isCheckmate: Entity.isCheckmate(newSquares, referee.getCurrentOpponent()),
+      isCastle: moveData.isCastle,
+      isFromIA: false
+    });
+
+    onMove(moveDataObj);
+  } else {
+    Log.debug(`No valid move from square: ${squareIndex}`);
+  }
+};
 
   const handleMouseEnter = (squareIndex, gameStatus, squares, currentPlayer) => {
     if (gameStatus !== 'playing') return;

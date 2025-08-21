@@ -6,20 +6,16 @@ import Queen from "./pieces/Queen";
 import King from "./pieces/King";
 import BaseEntity from './BaseEntity';
 import PgnNotation from "./PgnNotation";
+import Log from "../Log";
 
 export default class Entity extends BaseEntity {
   constructor(referee, position) {
     super(referee, position);
 
     
-    this.color = this.referee.getSquareColor(this.position) || '';
-    this.type = this.referee.getSquare(this.position)?.toLowerCase() || '';
-    this.hasMoved = false;
-    this.fromRow = Math.floor(this.position / 8);
-    this.fromCol = this.position % 8;
-    this.hasMoved = false;
 
-    console.log(`entity : ${this.position} - ${this.type} - ${this.color}`)
+
+    // console.log(`entity : ${this.position} - ${this.type} - ${this.color}`);
     assets.assert(['white', 'black'].includes(this.color), 'Invalid color');
     assets.assert(
       Number.isInteger(this.position)
@@ -61,7 +57,10 @@ export default class Entity extends BaseEntity {
     const kingChar = player === 'white' ? 'K' : 'k';
     const kingPosition = squares.indexOf(kingChar);
 
-    if (kingPosition === -1) return false; // should not happen, but just in case
+    if (kingPosition === -1) {
+      Log.debug(`isCheck king(${kingChar}) not found`);
+      return false; // should not happen, but just in case
+    }
 
     // verify if any opponent can attack the king
     for (let i = 0; i < 64; i++) {
@@ -69,10 +68,12 @@ export default class Entity extends BaseEntity {
       if (piece && Entity.getColorByEntity(piece) !== player) {
         const entity = Entity.fromChar(this.referee, i);
         if (entity && entity.isValidMove(kingPosition)) {
+          Log.debug(`${entity} can move to ${kingPosition}`);
           return true;
         }
       }
     }
+    // Log.debug(`no check`);
     return false;
   }
   static isStalemate(squares, player) {

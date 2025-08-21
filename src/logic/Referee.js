@@ -1,7 +1,7 @@
 import Entity from './Entity';
 import PgnNotation from './PgnNotation';
-import Utils from '../Utils';
 import MoveData from './MoveData';
+import Log from '../Log';
 
 export default class Referee {
   constructor() {
@@ -79,7 +79,7 @@ export default class Referee {
     const toEntity = squares[to];
 
     if (!entityChar) return false;
-
+    
     if (toEntity && Entity.getColorByEntity(toEntity) === Entity.getColorByEntity(entityChar)) {
       return false;
     }
@@ -88,7 +88,10 @@ export default class Referee {
 
     if (entity.isValidMove(to)) {
       const simulatedBoard = this.simulateMove(this.getCurrentBoard(), from, to);
-      return !Entity.isCheck(simulatedBoard, this.turn) ? entity : false;
+      const isCheck = Entity.isCheck(simulatedBoard, this.turn) ? entity : false;
+      return !isCheck;
+    }else {
+      Log.debug(`isValidMove = not valid : ${PgnNotation.idxToXY(from)} -> ${PgnNotation.idxToXY(to)}`)
     }
 
     return false;
@@ -175,20 +178,20 @@ export default class Referee {
     const { selectedSquare, validMoves } = currentState;
     const newState = { ...currentState };
     let isCastle = false;
+    let isEnPassant = false;
 
     if (selectedSquare !== null) {
-      const entity = this.isValidMove(
+      if (this.isValidMove(
         selectedSquare,
         squareIndex,
-        currentState.enPassantTarget);
-
-      if (entity) {
+        currentState.enPassantTarget)) {
+        const entity = Entity.fromChar(this, selectedSquare);
         newState.lastMovedSquare = squareIndex;
         newState.selectedSquare = null;
         newState.validMoves = [];
 
         isCastle = entity.type === 'k' && Math.abs(selectedSquare % 8 - squareIndex % 8) === 2;
-
+        isEnPassant = entity && entity.isEnPassant(squareIndex);
 
         return {
           newState,
@@ -196,7 +199,7 @@ export default class Referee {
             from: selectedSquare,
             to: squareIndex,
             entity,
-            isEnPassant: entity.isEnPassant(squareIndex),
+            isEnPassant: isEnPassant,
             isCastle,
           }
         };
