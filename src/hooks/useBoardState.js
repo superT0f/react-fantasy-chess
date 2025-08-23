@@ -13,39 +13,42 @@ export function useBoardState(referee, onMove, onPromotion) {
     promotionSquare: null // Add promotion state
   });
 
-  const handleSquareClick = (squareIndex, gameStatus) => {
-    if (gameStatus !== 'playing') {
-      Log.debug('Game not in playing state, ignoring click');
+const handleSquareClick = (squareIndex, gameStatus) => {
+  if (gameStatus !== 'playing') {
+    Log.debug('Game not in playing state, ignoring click');
+    return;
+  }
+
+  // Check if we're in promotion selection mode
+  if (localState.promotionSquare !== null) {
+    Log.debug('promotion detected');
+    handlePromotionSelection(moveData.from, moveData.to, squareIndex);
+    return;
+  }
+
+  const { newState, moveData } = referee.handleSquareClick(
+    squareIndex,
+    localState
+  );
+
+  setLocalState(newState);
+
+  if (moveData) {
+    // Only show promotion modal for human players, not AI
+    const isHumanPlayer = referee.getCurrentPlayer() === 'white' || gameMode !== 'ai';
+    
+    if (referee.isPromotionMove(moveData.from, moveData.to) && isHumanPlayer) {
+      onPromotion(moveData.from, moveData.to);
+      // we cant process this move yet : need user choice
       return;
     }
 
-    // Check if we're in promotion selection mode
-    if (localState.promotionSquare !== null) {
-      Log.debug('promotion detected');
-      handlePromotionSelection(moveData.from, moveData.to, squareIndex);
-      return;
-    }
-
-    const { newState, moveData } = referee.handleSquareClick(
-      squareIndex,
-      localState
-    );
-
-    setLocalState(newState);
-
-    if (moveData) {
-      if (referee.isPromotionMove(moveData.from, moveData.to)) {
-        onPromotion(moveData.from, moveData.to);
-        // we cant process this move yet : need user choice
-        return;
-      }
-
-      // Process regular move
-      processMove(moveData);
-    } else {
-      Log.debug(`No valid move from square: ${squareIndex}`);
-    }
-  };
+    // Process regular move (including AI promotion which auto-promotes to queen)
+    processMove(moveData);
+  } else {
+    Log.debug(`No valid move from square: ${squareIndex}`);
+  }
+};
 
   const handlePromotionSelection = (from, to, pieceSelection) => {
     const promotionPieces = ['q', 'r', 'b', 'n'];
