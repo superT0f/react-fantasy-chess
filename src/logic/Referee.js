@@ -11,6 +11,7 @@ export default class Referee {
     }];
     this.currentMoveIndex = 0;
     this.turn = 'white';
+    this.player = 'white';
   }
 
   getInitialBoard() {
@@ -266,22 +267,18 @@ export default class Referee {
 
   recordMove(moveData) {
     let newSquares = [...moveData.squares];
-
-    if (moveData.isCastle) {
-      const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
-      const rookFromCol = direction === 1 ? 7 : 0;
-      const rookToCol = direction === 1 ? 5 : 3;
-      const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
-      const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
-
-      newSquares[rookTo] = newSquares[rookFrom];
-      newSquares[rookFrom] = '';
-    }
+    const promotionPiece = (this.turn === 'white') ? moveData.promotionPiece?.toUpperCase() : moveData.promotionPiece?.toLowerCase();
     // the enPassant take the opponent pawn
     if (moveData.isEnPassant) {
-      const direction = (this.player === 'white') ? -1 : 1;
+      const direction = (this.turn === 'white') ? -1 : 1;
       const targetPawn = moveData.to + 8 * direction;
       newSquares[targetPawn] = '';
+    }
+
+    if (moveData.isPromotion && moveData.promotionPiece) {
+      Log.debug(`record promotion ${promotionPiece}`);
+      newSquares[moveData.to] = promotionPiece;
+      newSquares[moveData.from] = '';
     }
 
     const entityChar = this.getSquare(moveData.from);
@@ -293,7 +290,9 @@ export default class Referee {
       moveData.isEnPassant,
       moveData.isCheck,
       moveData.isCheckmate,
-      moveData.isCastle
+      moveData.isCastle,
+      moveData.isPromotion,
+      moveData.promotionPiece
     );
 
     this.history.push({
@@ -308,8 +307,32 @@ export default class Referee {
 
     this.currentMoveIndex++;
     this.turn = this.turn === 'white' ? 'black' : 'white';
+    Log.debug(`recordMove end: 
+      from : ${PgnNotation.idxToXY(moveData.from)}
+     -> to : ${PgnNotation.idxToXY(moveData.to)}`);
+    Log.debug(moveData);
+    Log.chessBoard(newSquares);
   }
 
+  // Add to the Referee class
+  isPromotionMove(from, to) {
+    const entityChar = this.getSquare(from);
+    if (!entityChar || entityChar.toLowerCase() !== 'p') return false;
+
+    const entity = Entity.fromChar(this, from);
+    return entity.isPromotionMove(to);
+  }
+
+  promotePawn(square, promotedPiece) {
+    const squares = [...this.getCurrentBoard()];
+    const color = this.getSquareColor(square);
+
+    squares[square] = promotedPiece;
+
+    // Update history with promoted piece
+    this.history[this.currentMoveIndex].squares = squares;
+    return squares;
+  }
   getHistory() {
     return this.history;
   }

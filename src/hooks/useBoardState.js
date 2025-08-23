@@ -3,32 +3,78 @@ import Entity from '../logic/Entity';
 import MoveData from '../logic/MoveData';
 import Log from '../Log';
 
-export function useBoardState(referee, onMove) {
+export function useBoardState(referee, onMove, onPromotion) {
   const [localState, setLocalState] = useState({
     selectedSquare: null,
     validMoves: [],
     lastMovedSquare: null,
     isOpponentPiece: false,
-    enPassantTarget: null
+    enPassantTarget: null,
+    promotionSquare: null // Add promotion state
   });
 
-const handleSquareClick = (squareIndex, gameStatus) => {
-  if (gameStatus !== 'playing') {
-    Log.debug('Game not in playing state, ignoring click');
-    return;
-  }
+  const handleSquareClick = (squareIndex, gameStatus) => {
+    if (gameStatus !== 'playing') {
+      Log.debug('Game not in playing state, ignoring click');
+      return;
+    }
 
-  const { newState, moveData } = referee.handleSquareClick(
-    squareIndex,
-    localState
-  );
+    // Check if we're in promotion selection mode
+    if (localState.promotionSquare !== null) {
+      Log.debug('promotion detected');
+      handlePromotionSelection(moveData.from, moveData.to, squareIndex);
+      return;
+    }
 
-  setLocalState(newState);
+    const { newState, moveData } = referee.handleSquareClick(
+      squareIndex,
+      localState
+    );
 
-  if (moveData) {
+    setLocalState(newState);
+
+    if (moveData) {
+      if (referee.isPromotionMove(moveData.from, moveData.to)) {
+        onPromotion(moveData.from, moveData.to);
+        // we cant process this move yet : need user choice
+        return;
+      }
+
+      // Process regular move
+      processMove(moveData);
+    } else {
+      Log.debug(`No valid move from square: ${squareIndex}`);
+    }
+  };
+
+  const handlePromotionSelection = (from, to, pieceSelection) => {
+    const promotionPieces = ['q', 'r', 'b', 'n'];
+    
+    if (promotionPieces.includes(pieceSelection)) {
+
+      const promotedSquares = referee.promotePawn(localState.promotionSquare, pieceSelection);
+      
+      const moveData = new MoveData({
+        from: from,
+        to: to,
+        squares: promotedSquares,
+        isPromotion: true,
+        promotionPiece: pieceSelection,
+        isFromIA: false
+      });
+
+      onMove(moveData);
+      
+      setLocalState(prev => ({
+        ...prev,
+        promotionSquare: null
+      }));
+    }
+  };
+
+  const processMove = (moveData) => {
     const newSquares = [...referee.getCurrentBoard()];
     const captured = newSquares[moveData.to];
-
     if (moveData.isCastle) {
       const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
       const rookFromCol = direction === 1 ? 7 : 0;
@@ -39,6 +85,7 @@ const handleSquareClick = (squareIndex, gameStatus) => {
       newSquares[moveData.to] = newSquares[moveData.from];
       newSquares[rookTo] = referee.getSquare(rookFrom);
       newSquares[moveData.from] = '';
+      newSquares[rookFrom] = '';
     } else {
       newSquares[moveData.to] = newSquares[moveData.from];
       newSquares[moveData.from] = '';
@@ -57,10 +104,7 @@ const handleSquareClick = (squareIndex, gameStatus) => {
     });
 
     onMove(moveDataObj);
-  } else {
-    Log.debug(`No valid move from square: ${squareIndex}`);
-  }
-};
+  };
 
   const handleMouseEnter = (squareIndex, gameStatus, squares, currentPlayer) => {
     if (gameStatus !== 'playing') return;

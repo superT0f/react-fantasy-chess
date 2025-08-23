@@ -6,10 +6,10 @@ export default class Log {
         INFO: 3,
         DEBUG: 4
     };
-    
+
     // Get default level from cookie, localStorage, or fallback to 'INFO'
     static #currentVerbose = Log.#getStoredVerboseLevel() || 'MUTE';
-    
+
     /**
      * Get stored verbose level from cookie or localStorage
      * @returns {string|null} Stored level or null if not found
@@ -20,7 +20,7 @@ export default class Log {
         if (cookieValue && Log.#verboseLevels[cookieValue.toUpperCase()]) {
             return cookieValue.toUpperCase();
         }
-        
+
         // Fallback to localStorage
         try {
             const storedValue = localStorage.getItem('log_verbose');
@@ -31,10 +31,10 @@ export default class Log {
             // localStorage might not be available (e.g., in Node.js)
             Log.debug('localStorage not available for verbose level storage');
         }
-        
+
         return null;
     }
-    
+
     /**
      * Get cookie value by name
      * @param {string} name - Cookie name
@@ -42,7 +42,7 @@ export default class Log {
      */
     static #getCookie(name) {
         if (typeof document === 'undefined') return null;
-        
+
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) {
@@ -50,7 +50,7 @@ export default class Log {
         }
         return null;
     }
-    
+
     /**
      * Set cookie with verbose level
      * @param {string} name - Cookie name
@@ -59,13 +59,13 @@ export default class Log {
      */
     static #setCookie(name, value, days = 30) {
         if (typeof document === 'undefined') return;
-        
+
         const date = new Date();
         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
         const expires = `expires=${date.toUTCString()}`;
         document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Lax`;
     }
-    
+
     /**
      * Set the verbose level and persist to storage
      * @param {string} level - One of: MUTE, ERROR, WARN, INFO, DEBUG
@@ -73,10 +73,10 @@ export default class Log {
      */
     static setLevel(level, persist = true) {
         const upperLevel = level?.toUpperCase();
-        
+
         if (Object.keys(this.#verboseLevels).includes(upperLevel)) {
             this.#currentVerbose = upperLevel;
-            
+
             if (persist) {
                 // Try cookie first
                 try {
@@ -90,13 +90,13 @@ export default class Log {
                     }
                 }
             }
-            
+
             this.debug(`Log level set to: ${upperLevel}${persist ? ' (persisted)' : ''}`);
         } else {
             this.error(`Invalid log level: ${level}. Available levels: ${Object.keys(this.#verboseLevels).join(', ')}`);
         }
     }
-    
+
     /**
      * Clear stored verbose level from all storage mechanisms
      */
@@ -105,17 +105,17 @@ export default class Log {
         if (typeof document !== 'undefined') {
             document.cookie = 'log_verbose=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         }
-        
+
         // Clear localStorage
         try {
             localStorage.removeItem('log_verbose');
         } catch (e) {
             // Ignore errors
         }
-        
+
         this.debug('Stored log level cleared');
     }
-    
+
     /**
      * Get current verbose level
      * @returns {string} Current verbose level
@@ -123,7 +123,7 @@ export default class Log {
     static getLevel() {
         return this.#currentVerbose;
     }
-    
+
     /**
      * Get all available verbose levels
      * @returns {string[]} Array of available levels
@@ -131,7 +131,7 @@ export default class Log {
     static getLevels() {
         return Object.keys(this.#verboseLevels);
     }
-    
+
     /**
      * Check if logging should occur for given level
      * @param {string} level - Level to check
@@ -140,7 +140,7 @@ export default class Log {
     static #shouldLog(level) {
         return this.#verboseLevels[level] <= this.#verboseLevels[this.#currentVerbose];
     }
-    
+
     /**
      * Check if a specific level is enabled
      * @param {string} level - Level to check
@@ -149,7 +149,7 @@ export default class Log {
     static isEnabled(level) {
         return this.#shouldLog(level);
     }
-    
+
     /**
      * Error logging - always shows unless MUTE
      */
@@ -158,7 +158,7 @@ export default class Log {
             console.error('❌ ERROR:', ...args);
         }
     }
-    
+
     /**
      * Warning logging
      */
@@ -167,7 +167,7 @@ export default class Log {
             console.warn('⚠️ WARN:', ...args);
         }
     }
-    
+
     /**
      * Info logging (default level)
      */
@@ -176,14 +176,14 @@ export default class Log {
             console.log('ℹ️ INFO:', ...args);
         }
     }
-    
+
     /**
      * Alias for info() for backward compatibility
      */
     static log(...args) {
         this.info(...args);
     }
-    
+
     /**
      * Debug logging - only shows in DEBUG mode
      */
@@ -192,13 +192,15 @@ export default class Log {
             console.debug('🐛 DEBUG:', ...args);
         }
     }
-    
-    /**
-     * Display chess board with optional title and styling
-     */
+    static debugNoSlug(...args) {
+        if (this.#shouldLog('DEBUG')) {
+            console.debug(...args);
+        }
+    }
+
     static chessBoard(squares, title = 'Chess Board') {
         if (!this.#shouldLog('INFO')) return;
-        
+
         const pieceSymbols = {
             'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
             'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙',
@@ -206,10 +208,10 @@ export default class Log {
         };
 
         // Styled output
-        console.log(`\n🎯 ${title}`);
-        console.log('  ┌─────────────────┐');
-        console.log('  │ a b c d e f g h │');
-        console.log('  ├─────────────────┤');
+        this.debug(`\n🎯 ${title}`);
+        this.debugNoSlug('  ┌─────────────────┐');
+        this.debugNoSlug('  │ a b c d e f g h │');
+        this.debugNoSlug('  ├─────────────────┤');
 
         for (let row = 0; row < 8; row++) {
             let rowStr = `${8 - row} │ `;
@@ -218,18 +220,16 @@ export default class Log {
                 const piece = squares[index] || '';
                 const symbol = pieceSymbols[piece] || pieceSymbols[''];
                 // Add color for better readability
-                rowStr += piece === piece.toUpperCase() && piece !== '' ? 
-                         `\x1b[34m${symbol}\x1b[0m ` : // Blue for white pieces
-                         `\x1b[31m${symbol}\x1b[0m `;  // Red for black pieces
+                rowStr += `${symbol} `;
             }
-            console.log(rowStr + `│ ${8 - row}`);
+            this.debugNoSlug(rowStr + `│ ${8 - row}`);
         }
 
-        console.log('  ├─────────────────┤');
-        console.log('  │ a b c d e f g h │');
-        console.log('  └─────────────────┘\n');
+        this.debugNoSlug('  ├─────────────────┤');
+        this.debugNoSlug('  │ a b c d e f g h │');
+        this.debugNoSlug('  └─────────────────┘\n');
     }
-    
+
     /**
      * Performance timing utility
      */
@@ -238,9 +238,9 @@ export default class Log {
             console.time(`⏱️ ${label}`);
             return () => console.timeEnd(`⏱️ ${label}`);
         }
-        return () => {}; // No-op if not debugging
+        return () => { }; // No-op if not debugging
     }
-    
+
     /**
      * Group related logs together
      */
@@ -249,9 +249,9 @@ export default class Log {
             console.group(`📁 ${label}`);
             return () => console.groupEnd();
         }
-        return () => {}; // No-op if level not enabled
+        return () => { }; // No-op if level not enabled
     }
-    
+
     /**
      * Table logging - only shows in DEBUG mode
      */
@@ -260,7 +260,7 @@ export default class Log {
             console.table(...args);
         }
     }
-    
+
     /**
      * Trace logging - only shows in DEBUG mode
      */
@@ -277,9 +277,9 @@ if (typeof URLSearchParams !== 'undefined' && typeof window !== 'undefined') {
     if (urlParams.has('debug')) {
         Log.setLevel('DEBUG', false); // Don't persist URL-based settings
     } else if (urlParams.has('log')) {
-        Log.setLevel(urlParams.get('log'), false);
+        Log.setLevel(ulParams.get('log'), false);
     }
 }
 
-// Optional: Export singleton instance for easier importing
+// Export singleton instance for easier importing
 export const log = Log;

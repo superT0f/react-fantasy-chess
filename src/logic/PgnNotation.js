@@ -20,7 +20,9 @@ export default class PgnNotation {
     isEnPassant = false,
     isCheck = false,
     isCheckmate = false,
-    isCastle = false) {
+    isCastle = false,
+    isPromotion = false,
+    promotionPiece = null) {
     if (!entity) return " ".repeat(10);
 
     const entityType = entity.toLowerCase();
@@ -48,6 +50,14 @@ export default class PgnNotation {
 
     notation += captured ? 'x' : '';
     notation += toCol + toRow;
+
+    if (isPromotion && promotionPiece) {
+      const promotionSymbols = {
+        'q': '=Q', 'r': '=R', 'b': '=B', 'n': '=N',
+        'Q': '=Q', 'R': '=R', 'B': '=B', 'N': '=N'
+      };
+      notation += promotionSymbols[promotionPiece] || '=Q';
+    }
 
     if (isEnPassant) notation += ' e.p.';
     if (isCheckmate) notation += '#';

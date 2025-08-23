@@ -1,7 +1,7 @@
 import { useBoardState } from './hooks/useBoardState';
 import { BoardRow } from './components/Board/BoardRow';
 
-export function Board({ onMove, gameStatus, lastMove, referee }) {
+export function Board({ onMove, gameStatus, lastMove, referee, onPromotion}) {
   const currentPlayer = referee.getCurrentPlayer();
   
   const { 
@@ -9,7 +9,7 @@ export function Board({ onMove, gameStatus, lastMove, referee }) {
     handleSquareClick, 
     handleMouseEnter, 
     handleMouseLeave 
-  } = useBoardState(referee, onMove);
+  } = useBoardState(referee, onMove, onPromotion);
 
   return (
         <BoardRow

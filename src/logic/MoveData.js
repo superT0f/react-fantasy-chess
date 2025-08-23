@@ -8,7 +8,9 @@ export default class MoveData {
     isCheck = false,
     isCheckmate = false,
     isCastle = false,
-    isFromIA = false
+    isFromIA = false,
+    isPromotion = false,
+    promotionPiece = null
   }) {
     this.from = from;
     this.to = to;
@@ -19,9 +21,10 @@ export default class MoveData {
     this.isCheckmate = isCheckmate;
     this.isCastle = isCastle;
     this.isFromIA = isFromIA;
+    this.isPromotion = isPromotion;
+    this.promotionPiece = promotionPiece;
   }
 
- 
   copy(updates = {}) {
     return new MoveData({ ...this, ...updates });
   }

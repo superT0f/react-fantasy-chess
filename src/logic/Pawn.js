@@ -14,6 +14,7 @@ export default class Pawn extends BaseEntity {
     const colDiff = Math.abs(toCol - fromCol);
     const direction = this.color === 'white' ? -1 : 1;
     const startRow = this.color === 'white' ? 6 : 1;
+    const promotionRow = this.color === 'white' ? 0 : 7;
 
     // Normal move forward
     if (fromCol === toCol) {
@@ -43,6 +44,12 @@ export default class Pawn extends BaseEntity {
     }
 
     return false;
+  }
+
+  isPromotionMove(to) {
+    const toRow = Math.floor(to / 8);
+    const promotionRow = this.color === 'white' ? 0 : 7;
+    return toRow === promotionRow;
   }
 
   isEnPassant(to) {

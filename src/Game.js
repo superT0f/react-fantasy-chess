@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Board } from './Board';
+import { PromotionModal } from './components/Game/PromotionModal'
 import { VictoryMessage } from './components/Game/VictoryMessage';
 import { GameModeSelection } from './components/Game/GameModeSelection';
 import { MoveHistory } from './components/Game/MoveHistory';
@@ -24,6 +25,9 @@ export default function Game() {
   const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
   const [isAiAggressive, setIsAiAggressive] = useState(true);
+  const [promotionSquares, setPromotionSquares] = useState(null);
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
+
   const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({
     gameMode,
     aiDifficulty,
@@ -77,60 +81,69 @@ export default function Game() {
     setCapturedByBlack([]);
   }
 
-function handleMove(moveData) {
-  Log.debug(`handleMove, from: ${moveData.from}, to: ${moveData.to}`);
-  
-  if (gameStatus !== 'playing') {
-    Log.debug('Game not in playing state, ignoring move');
-    return false;
-  }
+  const handlePromotion = (from, to) => {
+    setPromotionSquares({from:from, to:to});
+    setShowPromotionModal(true);
+  };
 
-  const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
-  const { squares, isFromIA } = moveData;
-  const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
-  const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(squares, opponent);
+  function handleMove(moveData) {
+    Log.debug(`handleMove, 
+    from: ${PgnNotation.idxToXY(moveData.from)},
+      to: ${PgnNotation.idxToXY(moveData.to)}`);
 
-  if (moveData.captured) {
-    if (referee.getCurrentPlayer() === 'white') {
-      setCapturedByBlack(prev => [...prev, moveData.captured]);
-    } else {
-      setCapturedByWhite(prev => [...prev, moveData.captured]);
+    if (gameStatus !== 'playing') {
+      Log.debug('Game not in playing state, ignoring move');
+      return false;
     }
-  }
-  
-  if (isOpponentInCheckmate) {
-    setGameStatus('checkmate');
-    setWinner(referee.getCurrentPlayer());
-    clearInterval(timerRef.current);
-  } else if (isOpponentInStalemate) {
-    setGameStatus('stalemate');
-    clearInterval(timerRef.current);
-  }
 
-  referee.recordMove(moveData);
+    const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
+    const { squares, isFromIA } = moveData;
+    const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
+    const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(squares, opponent);
 
-  setLastMove({
-    from: PgnNotation.idxToXY(moveData.from),
-    to: PgnNotation.idxToXY(moveData.to),
-    piece: referee.getSquare(moveData.from),
-    captured: moveData.captured,
-    notation: referee.getLastMove().pgn
-  });
+    if (moveData.captured) {
+      if (referee.getCurrentPlayer() === 'white') {
+        setCapturedByBlack(prev => [...prev, moveData.captured]);
+      } else {
+        setCapturedByWhite(prev => [...prev, moveData.captured]);
+      }
+    }
 
-  const newPlayer = referee.getCurrentPlayer();
-  switchPlayer(newPlayer, onTimeout);
+    if (isOpponentInCheckmate) {
+      setGameStatus('checkmate');
+      setWinner(referee.getCurrentPlayer());
+      clearInterval(timerRef.current);
+    } else if (isOpponentInStalemate) {
+      setGameStatus('stalemate');
+      clearInterval(timerRef.current);
+    }
 
-  if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
-    setIsAiThinking(true);
-    makeAiMove(squares, handleMove);
+    referee.recordMove(moveData);
 
-    //setTimeout(() => {
+    setLastMove({
+      from: PgnNotation.idxToXY(moveData.from),
+      to: PgnNotation.idxToXY(moveData.to),
+      piece: moveData.promotionPiece || referee.getSquare(moveData.from),
+      captured: moveData.captured,
+      notation: referee.getLastMove().pgn
+    });
+
+    const newPlayer = referee.getCurrentPlayer();
+    switchPlayer(newPlayer, onTimeout);
+
+
+    if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
+      setIsAiThinking(true);
+      makeAiMove(squares, handleMove);
+
+      //setTimeout(() => {
       setIsAiThinking(false);
-    //}, 500);
-  }
+      //}, 500);
+    }
 
-  return true;
-}
+    return true;
+
+  }
   const graveDiff = computeGraveDiff();
 
   const onTimeout = () => {
@@ -165,6 +178,31 @@ function handleMove(moveData) {
               onPlayAgain={() => window.location.reload()}
             />
 
+            {showPromotionModal && (
+              <PromotionModal
+                square={promotionSquares.to}
+                color={referee.getCurrentPlayer()}
+                onSelect={(piece) => {
+                  // Handle promotion selection
+                  const moveData = new MoveData({
+                    from: promotionSquares.from,
+                    to: promotionSquares.to,
+                    squares: referee.getCurrentBoard(),
+                    isPromotion: true,
+                    promotionPiece: piece,
+                    isFromIA: false
+                  });
+                  handleMove(moveData);
+                  setShowPromotionModal(false);
+                  setPromotionSquares(null);
+                }}
+                onClose={() => {
+                  setShowPromotionModal(false);
+                  setPromotionSquares(null);
+                }}
+              />
+            )}
+
             {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
             <div className="board-container">
               <div className="game-content">
@@ -176,6 +214,7 @@ function handleMove(moveData) {
                 <div className="game-board">
                   <Board
                     onMove={handleMove}
+                    onPromotion={handlePromotion}
                     lastMove={lastMove}
                     gameStatus={gameStatus}
                     referee={referee}

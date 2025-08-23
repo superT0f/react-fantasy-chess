@@ -1,4 +1,4 @@
-import Entity from './components/Entity';
+import EntityUI from './components/Entity';
 import PgnNotation from './logic/PgnNotation';
 
 export function Square({
@@ -40,7 +40,7 @@ export function Square({
         <div className="positions bottom"> {PgnNotation.getLetter(squareIndex)}</div>}
       {isPositionsRight &&
         <div className="positions right"> {PgnNotation.getNumber(squareIndex)}</div>}
-      <Entity entity={value} />
+      <EntityUI entity={value} />
     </button>
   );
 }
