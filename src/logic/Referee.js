@@ -15,16 +15,27 @@ export default class Referee {
   }
 
   getInitialBoard() {
-    return [
+    const staleMate = [
+      'k', '', '', 'N', '', '', '', '',
+      'p', 'N', 'B', '', '', '', '', '',
+      'P', 'p', '', '', '', '', '', '',
+      '', '', '', '', '', '', '', '',
+      '', 'P', '', '', '', '', '', '',
+      '', '', '', 'P', '', 'Q', '', '',
+      '', '', 'P', '', 'P', 'P', 'P', 'P',
+      'R', 'N', '', '', '', '', 'N', 'R'
+    ];
+    const checkMate = [
       'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
       'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
       '', '', '', '', '', '', '', '',
       '', '', '', '', '', '', '', '',
-      '', '', '', '', '', '', '', '',
-      '', '', '', '', '', '', '', '',
-      'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
-      'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'
+      '', '', 'B', '', '', '', '', '',
+      '', '', '', 'P', '', '', '', 'Q',
+      'P', 'P', 'P', '', 'P', 'P', 'P', 'P',
+      'R', 'N', 'B', '', 'K', '', 'N', 'R'
     ];
+    return checkMate;
   }
 
   reset() {
@@ -49,7 +60,11 @@ export default class Referee {
 
   getSquareColor(idx) {
     const entityChar = this.getSquare(idx);
-    return entityChar ? Entity.getColorByEntity(entityChar) : null;
+    let color = null;
+    if (entityChar) {
+      color = (entityChar.toUpperCase() === entityChar) ? 'white' : 'black';
+    }
+    return color;
   }
 
 
@@ -73,61 +88,64 @@ export default class Referee {
     return null;
   }
 
-  isValidMove(from, to, enPassantTarget = '') {
+  isValidMove(from, to, squares = this.getCurrentBoard(), enPassantTarget = '') {
     if (from === to) return false;
-    const squares = this.getCurrentBoard();
     const entityChar = squares[from];
     const toEntity = squares[to];
 
     if (!entityChar) return false;
+    const colorFrom = Entity.getColorByEntity(entityChar);
 
-    if (toEntity && Entity.getColorByEntity(toEntity) === Entity.getColorByEntity(entityChar)) {
+    if (toEntity && colorFrom === Entity.getColorByEntity(toEntity)) {
       return false;
     }
+
     const entity = Entity.fromChar(this, from);
     if (!entity) return false;
 
-    if (entity.isValidMove(to)) {
+    if (entity.isValidMove(to, squares)) {
       const isCastle = entity.type === 'k' && Math.abs(to % 8 - from % 8) === 2;
       const isEnPassant = entity && entity.isEnPassant(to);
-
       const simulatedBoard = this.simulateMove(
-        this.getCurrentBoard(),
+        squares,
         from,
         to,
         isCastle,
         isEnPassant
       );
-
-      const isCheck = Entity.isCheck(simulatedBoard, this.turn) ? entity : false;
+      const isCheck = this.isCheck(simulatedBoard, this.turn);
       return !isCheck;
     }
 
     return false;
   }
 
-  getAllValidMoves(from, enPassantTarget = '') {
+  getAllValidMoves(from, squares = this.getCurrentBoard(), enPassantTarget = '') {
     const moves = [];
 
-    if (!this.getCurrentBoard()[from]) return moves;
-
+    if (!squares || !squares[from]) return moves;
+    const color = (squares[from] === squares[from].toUpperCase()) ? 'white' : 'black';
     for (let to = 0; to < 64; to++) {
-      if (this.isValidMove(from, to, enPassantTarget)) {
-        moves.push(to);
+      if (this.isValidMove(from, to, squares, enPassantTarget)) {
+        const tempBoard = this.simulateMove(squares, from, to);
+        const isCheckAfter = this.isCheck(tempBoard, color);
+        if (!isCheckAfter) {
+          moves.push(to);
+        }
       }
     }
 
     return moves;
   }
 
-  getAllValidMovesForPlayer(player, enPassantTarget = null, scoreMoves = false, moveQualityEstimator = null) {
+  getAllValidMovesForPlayer(player, squares = this.getCurrentBoard(),
+    enPassantTarget = null, scoreMoves = false, moveQualityEstimator = null) {
     const moves = [];
-    const squares = this.getCurrentBoard();
 
     for (let from = 0; from < 64; from++) {
       const entityChar = squares[from];
       if (entityChar && this.getSquareColor(from) === player) {
-        const validTargets = this.getAllValidMoves(from, enPassantTarget);
+        const validTargets = this.getAllValidMoves(from, squares, enPassantTarget);
 
         validTargets.forEach(to => {
           const move = {
@@ -178,8 +196,7 @@ export default class Referee {
 
   simulateMove(squares, from, to, isCastle = false, isEnPassant = false) {
     const newSquares = [...squares];
-
-    // Handle castling
+    Log.debug(`simulateMove ${PgnNotation.idxToXY(from)}`)
     if (isCastle) {
       const direction = to % 8 > from % 8 ? 1 : -1;
       const rookFromCol = direction === 1 ? 7 : 0;
@@ -197,9 +214,7 @@ export default class Referee {
 
       return newSquares;
     }
-
-    // Handle en passant
-    if (isEnPassant) {
+    else if (isEnPassant) {
       const entityChar = newSquares[from];
       const color = Entity.getColorByEntity(entityChar);
       const direction = color === 'white' ? -1 : 1;
@@ -213,11 +228,12 @@ export default class Referee {
       newSquares[targetPawn] = '';
 
       return newSquares;
+    } else {
+      // Regular move
+      newSquares[to] = newSquares[from];
+      newSquares[from] = '';
     }
 
-    // Regular move
-    newSquares[to] = newSquares[from];
-    newSquares[from] = '';
     return newSquares;
   }
 
@@ -226,11 +242,17 @@ export default class Referee {
     const newState = { ...currentState };
     let isCastle = false;
     let isEnPassant = false;
-
-    if (selectedSquare !== null) {
+    // click on previous : unselect
+    if (selectedSquare && selectedSquare === squareIndex) {
+      newState.selectedSquare = null;
+      newState.validMoves = [];
+    }
+    //a previous square is selected
+    else if (selectedSquare !== null) {
       if (this.isValidMove(
         selectedSquare,
         squareIndex,
+        this.getCurrentBoard(),
         currentState.enPassantTarget)) {
         const entity = Entity.fromChar(this, selectedSquare);
         newState.lastMovedSquare = squareIndex;
@@ -254,12 +276,16 @@ export default class Referee {
         newState.selectedSquare = squareIndex;
         newState.validMoves = [];
       }
-    } else if (this.getSquareColor(squareIndex) === this.turn) {
+    }
+    else if (this.getSquareColor(squareIndex) === this.turn) {
       newState.selectedSquare = squareIndex;
-      newState.validMoves = this.getAllValidMoves(squareIndex, currentState.enPassantTarget);
+      newState.validMoves = this.getAllValidMoves(
+        squareIndex, this.getCurrentBoard(),
+        currentState.enPassantTarget);
       newState.isOpponentPiece = false;
-    } else {
-      console.warn('Invalid square click:', squareIndex, 'Selected:', selectedSquare);
+    }
+    else {
+      console.warn('Invalid square click:', PgnNotation.idxToXY(squareIndex), ' Selected:', selectedSquare);
     }
 
     return { newState, moveData: null };
@@ -306,12 +332,12 @@ export default class Referee {
     });
 
     this.currentMoveIndex++;
-    this.turn = this.turn === 'white' ? 'black' : 'white';
+    this.player = this.turn = this.player === 'white' ? 'black' : 'white';
     Log.debug(`recordMove end: 
       from : ${PgnNotation.idxToXY(moveData.from)}
      -> to : ${PgnNotation.idxToXY(moveData.to)}`);
     Log.debug(moveData);
-    Log.chessBoard(newSquares);
+    // Log.chessBoardPretty(newSquares);
   }
 
   // Add to the Referee class
@@ -341,11 +367,11 @@ export default class Referee {
     return this.turn;
   }
   getCurrentPlayer() {
-    return this.turn;
+    return this.player;
   }
 
   getCurrentOpponent() {
-    return this.turn === 'white' ? 'black' : 'white';
+    return this.player === 'white' ? 'black' : 'white';
   }
 
   getOpponent(player) {
@@ -361,19 +387,92 @@ export default class Referee {
     return this.history[move]?.squares || null;
   }
 
-  isStalemate(squares, player) {
-    return false;
-    if (Entity.isCheck(squares, player)) return false;
+  isCheck(squares, player) {
+    const kingChar = player === 'white' ? 'K' : 'k';
+    const kingPosition = squares.indexOf(kingChar);
 
-    for (let from = 0; from < 64; from++) {
-      const entityChar = squares[from];
-      const squareColor = Entity.getColorByEntity(entityChar);
-      const entity = Entity.fromChar(this.referee, from);
+    if (kingPosition === -1) {
+      Log.debug(`isCheck ${player} king(${kingChar}) not found`);
 
-      if (entity && squareColor === player &&
-        this.getAllValidMoves(from).length > 0)
-        return false;
+      return false; // should not happen, but just in case
     }
-    return true;
+
+    // verify if any opponent can attack the king
+    for (let i = 0; i < 64; i++) {
+      const piece = squares[i];
+      if (piece && Entity.getColorByEntity(piece) !== player) {
+        if (i === 16) {
+          Log.chessBoardPretty(squares);
+          console.log('break me');
+        }
+        if (this.isValidMove(i, kingPosition, squares)) {
+          Log.debug(`${PgnNotation.idxToXY(i)} can move to king ${kingPosition}`);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  isCheckmate(squares, player) {
+    if (!this.isCheck(squares, player)) {
+      return false;
+    }
+    const moves = this.getAllValidMovesForPlayer(player, squares);
+    return (moves && moves.length === 0);
+  }
+
+  simulateMove(squares, from, to, isCastle = false, isEnPassant = false) {
+    const newSquares = [...squares];
+
+    // Handle castling
+    if (isCastle) {
+      const direction = to % 8 > from % 8 ? 1 : -1;
+      const rookFromCol = direction === 1 ? 7 : 0;
+      const rookToCol = direction === 1 ? 5 : 3;
+      const rookFrom = Math.floor(from / 8) * 8 + rookFromCol;
+      const rookTo = Math.floor(from / 8) * 8 + rookToCol;
+
+      // Move the king
+      newSquares[to] = newSquares[from];
+      newSquares[from] = '';
+
+      // Move the rook
+      newSquares[rookTo] = newSquares[rookFrom];
+      newSquares[rookFrom] = '';
+
+      return newSquares;
+    }
+
+    // Handle en passant
+    if (isEnPassant) {
+      const entityChar = newSquares[from];
+      const color = Entity.getColorByEntity(entityChar);
+      const direction = color === 'white' ? -1 : 1;
+      const targetPawn = to + 8 * direction;
+
+      // Move the pawn
+      newSquares[to] = newSquares[from];
+      newSquares[from] = '';
+
+      // Remove the captured pawn
+      newSquares[targetPawn] = '';
+
+      return newSquares;
+    }
+
+    // Regular move
+    newSquares[to] = newSquares[from];
+    newSquares[from] = '';
+    return newSquares;
+  }
+  isStalemate(squares, player) {
+    // If player is in check, it's not stalemate
+    if (this.isCheck(squares, player)) {
+      return false;
+    }
+    const moves = this.getAllValidMovesForPlayer(player, squares);
+
+    return (moves && moves.length === 0);
   }
 }

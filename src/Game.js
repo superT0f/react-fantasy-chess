@@ -71,7 +71,7 @@ export default function Game() {
 
     referee.reset();
     resetTimer();
-    startTimer(referee.getCurrentPlayer(), onTimeout);
+    startTimer('white', onTimeout);
     setGameMode(mode);
     setAiDifficulty(difficulty);
     setIsAiAggressive(aggressive);
@@ -82,80 +82,84 @@ export default function Game() {
   }
 
   const handlePromotion = (from, to) => {
-    setPromotionSquares({from:from, to:to});
+    setPromotionSquares({ from: from, to: to });
     setShowPromotionModal(true);
   };
 
-function handleMove(moveData) {
-  Log.debug(`handleMove, 
+  function handleMove(moveData) {
+    Log.debug(`handleMove, 
   from: ${PgnNotation.idxToXY(moveData.from)},
     to: ${PgnNotation.idxToXY(moveData.to)}`);
 
-  if (gameStatus !== 'playing') {
-    Log.debug('Game not in playing state, ignoring move');
-    return false;
-  }
-
-  // Check if this is an AI move that requires promotion
-  const isAiMove = moveData.isFromIA;
-  const isPromotionMove = referee.isPromotionMove(moveData.from, moveData.to);
-  
-  // If it's an AI move that requires promotion, auto-promote to queen
-  if (isAiMove && isPromotionMove && !moveData.isPromotion) {
-    Log.debug('AI promotion detected, auto-promoting to queen');
-    moveData.isPromotion = true;
-    moveData.promotionPiece = 'q';
-    
-    // Update the squares with the promoted piece
-    const newSquares = [...moveData.squares];
-    const promotionChar = referee.getCurrentPlayer() === 'white' ? 'Q' : 'q';
-    newSquares[moveData.to] = promotionChar;
-    moveData.squares = newSquares;
-  }
-
-  const opponent = referee.getCurrentPlayer() === 'white' ? 'black' : 'white';
-  const { squares, isFromIA } = moveData;
-  const isOpponentInCheckmate = Entity.isCheckmate(squares, opponent);
-  const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(squares, opponent);
-
-  if (moveData.captured) {
-    if (referee.getCurrentPlayer() === 'white') {
-      setCapturedByBlack(prev => [...prev, moveData.captured]);
-    } else {
-      setCapturedByWhite(prev => [...prev, moveData.captured]);
+    if (gameStatus !== 'playing') {
+      Log.debug('Game not in playing state, ignoring move');
+      return false;
     }
+    const currentPlayer = referee.getCurrentPlayer();
+    // Check if this is an AI move that requires promotion
+    const isAiMove = moveData.isFromIA;
+    const isPromotionMove = referee.isPromotionMove(moveData.from, moveData.to);
+
+    // If it's an AI move that requires promotion, auto-promote to queen
+    if (isAiMove && isPromotionMove && !moveData.isPromotion) {
+      Log.debug('AI promotion detected, auto-promoting to queen');
+      moveData.isPromotion = true;
+      moveData.promotionPiece = 'q';
+
+      // Update the squares with the promoted piece
+      const newSquares = [...moveData.squares];
+      const promotionChar = currentPlayer === 'white' ? 'Q' : 'q';
+      newSquares[moveData.to] = promotionChar;
+      moveData.squares = newSquares;
+    }
+
+    const opponent = currentPlayer === 'white' ? 'black' : 'white';
+    const { squares, isFromIA } = moveData;
+
+    if (moveData.captured) {
+      if (currentPlayer === 'white') {
+        setCapturedByBlack(prev => [...prev, moveData.captured]);
+      } else {
+        setCapturedByWhite(prev => [...prev, moveData.captured]);
+      }
+    }
+
+
+    referee.recordMove(moveData);
+
+    setLastMove({
+      from: PgnNotation.idxToXY(moveData.from),
+      to: PgnNotation.idxToXY(moveData.to),
+      piece: moveData.promotionPiece || referee.getSquare(moveData.from),
+      captured: moveData.captured,
+      notation: referee.getLastMove().pgn
+    });
+
+    const isOpponentInCheckmate = referee.isCheckmate(squares, opponent);
+    const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(squares, opponent);
+
+
+    
+
+    if (isOpponentInCheckmate) {
+      setWinner(currentPlayer);
+      setGameStatus('checkmate');
+      clearInterval(timerRef.current);
+    } else if (isOpponentInStalemate) {
+      setGameStatus('stalemate');
+      clearInterval(timerRef.current);
+    }
+    const newPlayer = referee.getCurrentPlayer();
+    switchPlayer(newPlayer, onTimeout);
+
+    if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
+      setIsAiThinking(true);
+      makeAiMove(squares, handleMove);
+      setIsAiThinking(false);
+    }
+
+    return true;
   }
-
-  if (isOpponentInCheckmate) {
-    setGameStatus('checkmate');
-    setWinner(referee.getCurrentPlayer());
-    clearInterval(timerRef.current);
-  } else if (isOpponentInStalemate) {
-    setGameStatus('stalemate');
-    clearInterval(timerRef.current);
-  }
-
-  referee.recordMove(moveData);
-
-  setLastMove({
-    from: PgnNotation.idxToXY(moveData.from),
-    to: PgnNotation.idxToXY(moveData.to),
-    piece: moveData.promotionPiece || referee.getSquare(moveData.from),
-    captured: moveData.captured,
-    notation: referee.getLastMove().pgn
-  });
-
-  const newPlayer = referee.getCurrentPlayer();
-  switchPlayer(newPlayer, onTimeout);
-
-  if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
-    setIsAiThinking(true);
-    makeAiMove(squares, handleMove);
-    setIsAiThinking(false);
-  }
-
-  return true;
-}
   const graveDiff = computeGraveDiff();
 
   const onTimeout = () => {

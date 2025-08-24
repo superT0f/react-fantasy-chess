@@ -2,10 +2,8 @@ import Entity from './Entity';
 import BaseEntity from './BaseEntity';
 
 export default class Pawn extends BaseEntity {
-  isValidMove(to) {
+  isValidMove(to, squares=this.squares) {
     const from = this.position;
-    const squares = this.squares;
-
     const fromRow = Math.floor(from / 8);
     const fromCol = from % 8;
     const toRow = Math.floor(to / 8);
@@ -24,7 +22,7 @@ export default class Pawn extends BaseEntity {
       if (fromRow === startRow &&
         toRow === fromRow + 2 * direction &&
         squares[to] === '' &&
-        this.isPathClear(to)) {
+        this.isPathClear(to, squares)) {
         return true;
       }
     }

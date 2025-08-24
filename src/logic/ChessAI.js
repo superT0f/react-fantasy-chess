@@ -72,6 +72,7 @@ export default class ChessAI {
 
         const validMoves = referee.getAllValidMovesForPlayer(
             player,
+            squares,
             null,
             true, // score moves
             ChessAI.moveQualityEstimator // pass the function pointer

@@ -1,16 +1,16 @@
 import PgnNotation from "../../logic/PgnNotation";
-import {Square} from "../../Square";
+import { Square } from "../../Square";
 import Entity from "../../logic/Entity";
-export function BoardRow({ 
-  referee, 
-  currentPlayer, 
-  lastMove, 
-  localState, 
-  onClick, 
-  onMouseEnter, 
-  onMouseLeave 
+export function BoardRow({
+  referee,
+  currentPlayer,
+  lastMove,
+  localState,
+  onClick,
+  onMouseEnter,
+  onMouseLeave
 }) {
-    return (
+  return (
     <>
       {Array(8).fill(null).map((_, row) => (
         <div className="board-row" key={row}>
@@ -19,7 +19,7 @@ export function BoardRow({
             var isValidMove = localState.validMoves.includes(squareIndex);
             const entityChar = referee.getSquare(squareIndex);
             const isKingInCheck = entityChar && entityChar.toLowerCase() === 'k' &&
-              Entity.isCheck(referee.getCurrentBoard(), currentPlayer) &&
+              referee.isCheck(referee.getCurrentBoard(), currentPlayer) &&
               Entity.getColorByEntity(entityChar) === currentPlayer;
 
             const isLastMoveFrom = lastMove?.from === PgnNotation.idxToXY(squareIndex);

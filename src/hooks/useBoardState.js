@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Entity from '../logic/Entity';
 import MoveData from '../logic/MoveData';
 import Log from '../Log';
+import PgnNotation from '../logic/PgnNotation';
 
 export function useBoardState(referee, onMove, onPromotion) {
   const [localState, setLocalState] = useState({
@@ -35,7 +36,7 @@ const handleSquareClick = (squareIndex, gameStatus) => {
 
   if (moveData) {
     // Only show promotion modal for human players, not AI
-    const isHumanPlayer = referee.getCurrentPlayer() === 'white' || gameMode !== 'ai';
+    const isHumanPlayer = !moveData.isFromIA;
     
     if (referee.isPromotionMove(moveData.from, moveData.to) && isHumanPlayer) {
       onPromotion(moveData.from, moveData.to);
@@ -46,7 +47,7 @@ const handleSquareClick = (squareIndex, gameStatus) => {
     // Process regular move (including AI promotion which auto-promotes to queen)
     processMove(moveData);
   } else {
-    Log.debug(`No valid move from square: ${squareIndex}`);
+    Log.debug(`handleSquareClick: turn:${referee.turn} No valid move from square: ${squareIndex} - ${PgnNotation.idxToXY(squareIndex)}`);
   }
 };
 
@@ -100,8 +101,8 @@ const handleSquareClick = (squareIndex, gameStatus) => {
       squares: newSquares,
       captured,
       isEnPassant: moveData.isEnPassant,
-      isCheck: Entity.isCheck(newSquares, referee.getCurrentPlayer()),
-      isCheckmate: Entity.isCheckmate(newSquares, referee.getCurrentOpponent()),
+      isCheck: referee.isCheck(newSquares, referee.getCurrentOpponent()),
+      isCheckmate: referee.isCheckmate(newSquares, referee.getCurrentOpponent()),
       isCastle: moveData.isCastle,
       isFromIA: false
     });

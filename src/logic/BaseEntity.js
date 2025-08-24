@@ -12,26 +12,25 @@ export default class BaseEntity {
     this.fromRow = Math.floor(this.position / 8);
     this.fromCol = this.position % 8;
     this.hasMoved = false;
-  }
-
-  get squares() {
-    return this.referee.getCurrentBoard();
+    this.squares = this.referee.getCurrentBoard();
   }
 
   setType(newType) {
-    this.type =newType;
+    this.type = newType;
   }
 
   setColor(newColor) {
     this.color = newColor;
   }
 
-  isPathClear(to) {
+  isPathClear(to, squares=this.squares) {
     if (this.type === 'n') return true;
 
     const toRow = Math.floor(to / 8);
     const toCol = to % 8;
-
+    if (to === 3 && this.type === 'q') {
+      console.log('clear ?');
+    }
     const rowStep = Math.sign(toRow - this.fromRow);
     const colStep = Math.sign(toCol - this.fromCol);
 
@@ -40,14 +39,14 @@ export default class BaseEntity {
 
     while (currentRow !== toRow || currentCol !== toCol) {
       const index = currentRow * 8 + currentCol;
-      if (this.squares[index] !== '') return false;
+      if (squares[index] !== '') return false;
 
       currentRow += rowStep;
       currentCol += colStep;
     }
 
-    return this.squares[to] === '' ||
-      Entity.getColorByEntity(this.squares[to]) !== this.color;
+    return squares[to] === '' ||
+      Entity.getColorByEntity(squares[to]) !== this.color;
   }
 
   getSymbol() {
