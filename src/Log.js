@@ -229,7 +229,51 @@ export default class Log {
         this.debugNoSlug('  │ a b c d e f g h │');
         this.debugNoSlug('  └─────────────────┘\n');
     }
+    static chessBoardPretty(squares, title = 'Chess Board') {
+        if (!this.#shouldLog('INFO')) return;
 
+        const pieceSymbols = {
+            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙',
+            '': '·'
+        };
+
+        // Color codes for better readability
+        const colors = {
+            darkSquare: '\x1b[48;5;137m',  // Light brown background
+            lightSquare: '\x1b[48;5;223m', // Beige background
+            blackPiece: '\x1b[30m',        // Black text
+            whitePiece: '\x1b[97m',        // Bright white text
+            reset: '\x1b[0m',              // Reset colors
+            border: '\x1b[38;5;94m'        // Dark brown for borders
+        };
+
+        // Styled output
+        this.debug(`\n🎯 ${title}`);
+        this.debugNoSlug(`${colors.border}  ╔═a══b══c══d══e══f══g═══h══╗${colors.reset}\n`);
+        for (let row = 0; row < 8; row++) {
+            let rowStr = `${colors.border}${8 - row} ║ ${colors.reset}`;
+
+            for (let col = 0; col < 8; col++) {
+                const index = row * 8 + col;
+                const piece = squares[index] || '';
+                const symbol = pieceSymbols[piece] || pieceSymbols[''];
+
+                // Determine square color
+                const isDarkSquare = (row + col) % 2 === 1;
+                const bgColor = isDarkSquare ? colors.darkSquare : colors.lightSquare;
+
+                // Determine piece color
+                const pieceColor = piece === piece.toUpperCase() && piece !== '' ?
+                    colors.whitePiece : colors.blackPiece;
+
+                rowStr += `${bgColor}${pieceColor} ${symbol} ${colors.reset}`;
+            }
+
+            this.debugNoSlug(rowStr + `${colors.border} ║ ${8 - row}${colors.reset}`);
+        }
+        this.debugNoSlug(`${colors.border}  ╚═a══b══c══d══e══f══g═══h══╝${colors.reset}\n`);
+    }
     /**
      * Performance timing utility
      */
