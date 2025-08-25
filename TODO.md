@@ -1,65 +1,61 @@
 # TODO.md - Fantasy Chess Project
 
+
+# TODO & Roadmap
+
 ## 🚀 High Priority
-
-### 1. **Fix AI Controller Implementation**
-- [ ] Complete AI move execution logic in `AIController.js`
-- [ ] Ensure AI moves are properly recorded in game history
-- [ ] Fix `isFromIA` flag handling in AI moves
-- [ ] Implement proper AI difficulty levels (easy, medium, hard)
-
-### 2. **Referee Class Improvements**
-- [ ] Fix `getAllValidMoves()` method signature consistency
-- [ ] Complete castling implementation with proper rook movement
-- [ ] Ensure en passant target is properly passed to move validation
-- [ ] Fix history management and move indexing
-
-### 3. **Entity Class Fixes**
-- [ ] Fix constructor implementation (missing `super()` call)
-- [ ] Resolve `assets.assert` reference error
-- [ ] Ensure proper inheritance from BaseEntity
+- [ ] Implement threefold repetition draw detection
+- [ ] Add 50-move rule implementation
+- [ ] Improve AI endgame strategy
+- [ ] Add game saving/loading functionality
+- [ ] Implement online multiplayer capability
+- [ ] Add player profiles and statistics
+- [ ] Create tutorial mode for beginners
 
 ## 📝 Medium Priority
-
-### 4. **Move Validation & Game Logic**
-- [ ] Complete pawn promotion implementation
-- [ ] Fix en passant capture logic
-- [ ] Ensure check detection works correctly in all scenarios
-- [ ] Implement proper stalemate detection
-
-### 5. **UI/UX Improvements**
-- [ ] Responsive design for mobile devices
-- [ ] Improve game over state handling
-- [ ] Add loading states for AI thinking
-- [ ] Enhance move history display with proper formatting
-
-### 6. **Code Quality & Architecture**
-- [ ] Extract duplicate move execution logic (shared between human and AI moves)
-- [ ] Improve error handling throughout the application
-- [ ] Add proper TypeScript types
-- [ ] Implement comprehensive unit tests
+- [ ] Enhance AI opening book with more variations
+- [ ] Add sound effects for moves, captures, and game events
+- [ ] Implement drag-and-drop piece movement
+- [ ] Add move suggestion hints for beginners
+- [ ] Create puzzle mode with tactical challenges
+- [ ] Add game analysis mode with engine evaluation
+- [ ] Implement time control options (blitz, rapid, classical)
 
 ## 🔧 Low Priority
+- [ ] Add more chess themes and piece sets
+- [ ] Implement animated piece movements
+- [ ] Add spectator mode for online games
+- [ ] Create tournament mode with Swiss system
+- [ ] Add voice commentary for important moves
+- [ ] Implement chess notation import/export (PGN)
+- [ ] Add customizable board and piece sizes
 
-### 7. **Additional Features**
-- [ ] Implement draw by repetition
-- [ ] Add 50-move rule detection
-- [ ] Create save/load game functionality
-- [ ] Add game analysis mode
-- [ ] Implement PGN import/export
+## 🐛 Technical Debt
+- [ ] Optimize AI performance for deeper search depths
+- [ ] Refactor entity creation to use factory pattern
+- [ ] Improve responsive design for mobile devices
+- [ ] Add comprehensive test coverage for all piece types
+- [ ] Implement proper error boundaries throughout React components
+- [ ] Optimize re-rendering performance for large move histories
+- [ ] Add TypeScript migration for better type safety
 
-### 8. **Performance Optimizations**
-- [ ] Memoize expensive calculations (move generation, check detection)
-- [ ] Implement move ordering for better AI performance
-- [ ] Add debouncing for UI interactions
+## In Progress
+- [x] Major game logic refactor (Referee class) ✅
+- [x] Pawn promotion implementation ✅
+- [x] Enhanced AI with difficulty levels ✅
+- [x] Comprehensive logging system ✅
+- [x] Multiple theme support ✅
 
-### 9. **Documentation**
-- [ ] Add JSDoc comments to all methods
-- [ ] Create architecture documentation
-- [ ] Write user guide
-- [ ] Add contributor guidelines
-
-## 🐛 Known Issues
+## Completed ✓
+- [x] Basic chess rules implementation
+- [x] AI opponent with random moves
+- [x] Check and checkmate detection
+- [x] Castling logic
+- [x] En passant captures
+- [x] Move history with PGN notation
+- [x] Timer functionality
+- [x] Victory conditions handling
+- [x] Responsive board design
 
 ### Critical Bugs
 - [ ] AI moves not executing properly
@@ -111,5 +107,5 @@
 
 ---
 
-*Last Updated: 2024-08-20*  
-*Based on analysis of commit: e054ca5d77d9e6d9032746f3673ca14a8ff09f03*
+*Last Updated: 2024-08-25*  
+*Based on analysis of commit: b4778d825a04e682acca15a2baee3c6efff72aed*
