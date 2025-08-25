@@ -1,21 +1,50 @@
-# CHANGELOG
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [beta-0.0.54] - 2025-08-25
 
-### Features
-- Implemented Graveyard component with point calculation and visual display
-- Added Burger menu component for better mobile navigation
-- Enhanced timer display styles and positioning
-- Improved AI move logic and move validation
-- Introduced MoveData class for better move handling
+[Release details](https://gitlab.com/SuperT0f/react-fantasy-chess/-/releases/0.0.54)
+### Added
+- Enhanced AI with iterative deepening and aggressive mode options
+- Pawn promotion feature with modal selection interface
+- New logging system with multiple verbosity levels and chess board visualization
+- Graveyard component showing captured pieces and point differential
+- Burger menu for theme selection accessibility
+- Multiple new themes: classic, first-blood, hanna, mystical, mystical-hd
+- Move history component with PGN notation
+- Victory message component for game end states
+- Timer display with low-time warnings
+
+### Changed
+- **Major refactor**: Centralized game logic in Referee class for consistent validation
+- Improved move validation for all piece types
+- Enhanced check and checkmate detection logic
+- Restructured project with better component separation
+- Updated UI with responsive design improvements
+- AI now auto-promotes pawns to queens during moves
+- Improved en passant capture handling
+
+### Fixed
+- Fixed isCheck() detection in various edge cases
+- Resolved pawn move validation issues
+- Corrected castling logic and validation
+- Fixed stalemate detection using referee methods
+- Addressed various move simulation issues
+
+### Technical
+- Added comprehensive unit tests for pawn movement
+- Implemented Makefile helpers for development workflow
+- Enhanced error handling throughout the codebase
+- Improved performance with optimized move validation
+- Added detailed debug logging capabilities
+
 
 ### Refactor
 - Split game and board logic into separate components and hooks
 - Refactored entity and base entity classes for better organization
 
-## [2025-08-20] - Version 1.2.0
+## [2025-08-20] - Version 0.0.42
 
 ### Features
 - **Graveyard System**: Added captured piece tracking with point differential display
@@ -27,7 +56,7 @@ All notable changes to this project will be documented in this file.
 - Split codebase into more modular structure
 - Created new components and hooks for better separation of concerns
 
-## [2025-08-19] - Version 1.1.0
+## [2025-08-19] - Version 0.0.23
 
 ### Features
 - **Castling**: Implemented complete castling logic with king and rook movement
@@ -39,7 +68,7 @@ All notable changes to this project will be documented in this file.
 - Improved error logging for missing entity images
 - Added Opera browser launch configuration
 
-## [2025-08-18] - Version 1.0.0
+## [2025-08-18] - Version 0.0.15
 
 ### Major Features
 - **Classic Theme**: Added new classic chess theme
@@ -52,7 +81,7 @@ All notable changes to this project will be documented in this file.
 - **Move Suggestions**: Separate styles for player and opponent valid moves
 - **Selected Square**: Enhanced visual feedback for selected pieces
 
-## [2025-08-17] - Version 0.9.0
+## [2025-08-17] - Version 0.0.9
 
 ### Core Features
 - **Theming System**: Multiple themes (mystical, mystical-hd, first-blood, hanna)
@@ -66,7 +95,7 @@ All notable changes to this project will be documented in this file.
 - **Move Validation**: Comprehensive move validation with check prevention
 - **En Passant**: Fixed en passant move handling and PGN notation
 
-## [2025-08-16] - Version 0.8.0
+## [2025-08-16] - Version 0.0.7
 
 ### Initial Release
 - **Basic Chess Game**: Complete chess functionality
