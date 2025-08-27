@@ -28,9 +28,6 @@ export default class BaseEntity {
 
     const toRow = Math.floor(to / 8);
     const toCol = to % 8;
-    if (to === 3 && this.type === 'q') {
-      console.log('clear ?');
-    }
     const rowStep = Math.sign(toRow - this.fromRow);
     const colStep = Math.sign(toCol - this.fromCol);
 

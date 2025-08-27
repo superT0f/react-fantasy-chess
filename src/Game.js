@@ -14,6 +14,10 @@ import PgnNotation from './logic/PgnNotation';
 import MoveData from './logic/MoveData';
 import { Graveyard } from './components/Graveyard';
 import Log from './Log';
+import { PuzzleGameComponent } from './components/Game/PuzzleGame';
+import PuzzleGame from './logic/PuzzleGame';
+
+
 
 
 export default function Game() {
@@ -28,6 +32,13 @@ export default function Game() {
   const [promotionSquares, setPromotionSquares] = useState(null);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
 
+
+
+  const [puzzleMode, setPuzzleMode] = useState(false);
+  const [puzzleGame] = useState(new PuzzleGame(referee));
+
+
+  const [feedback, setFeedback] = useState('');
   const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({
     gameMode,
     aiDifficulty,
@@ -87,9 +98,10 @@ export default function Game() {
   };
 
   function handleMove(moveData) {
-    Log.debug(`handleMove, 
-  from: ${PgnNotation.idxToXY(moveData.from)},
-    to: ${PgnNotation.idxToXY(moveData.to)}`);
+    if (puzzleMode) {
+      handlePuzzleMove(moveData);
+      return true;
+    }
 
     if (gameStatus !== 'playing') {
       Log.debug('Game not in playing state, ignoring move');
@@ -139,7 +151,7 @@ export default function Game() {
     const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(squares, opponent);
 
 
-    
+
 
     if (isOpponentInCheckmate) {
       setWinner(currentPlayer);
@@ -154,12 +166,37 @@ export default function Game() {
 
     if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
       setIsAiThinking(true);
-      makeAiMove(squares, handleMove);
-      setIsAiThinking(false);
+      setTimeout(() => {
+        makeAiMove(squares, handleMove);
+        setIsAiThinking(false);
+      }, 500);
     }
 
     return true;
   }
+
+
+  const handlePuzzleMove = (moveData) => {
+    Log.debug(`handlePuzzleMove`);
+    Log.debug(moveData);
+    const result = puzzleGame.validateMove(moveData);
+
+    if (result.isValid) {
+      // Process the move normally
+      //handleMove(moveData);
+      referee.recordMove(moveData);
+      setFeedback(result.feedback);
+      if (result.isComplete) {
+        // Puzzle completed, you might want to show a celebration
+        Log.debug('Puzzle completed!');
+      }
+    } else {
+       Log.debug('handlePuzzleMove move not valid!');
+       Log.debug(moveData);
+    }
+  };
+
+
   const graveDiff = computeGraveDiff();
 
   const onTimeout = () => {
@@ -184,81 +221,106 @@ export default function Game() {
   return (
     <ThemeProvider>
       <div className={`game theme-${localStorage.getItem('chessTheme') || theme}`}>
-        {gameMode === null ? (
-          <GameModeSelection onStartNewGame={startNewGame} />
-        ) : (
+        {!gameMode && !puzzleMode ? (
+          <GameModeSelection
+            onStartNewGame={startNewGame}
+            onStartPuzzle={() => setPuzzleMode(true)}
+          />
+        ) : puzzleMode ? (
           <>
-            <VictoryMessage
-              gameStatus={gameStatus}
-              winner={winner}
-              onPlayAgain={() => window.location.reload()}
+            <PuzzleGameComponent
+              puzzleGame={puzzleGame}
+              feedback={feedback}
+              onExit={() => {
+                setPuzzleMode(false);
+                setGameMode(null);
+              }}
             />
-
-            {showPromotionModal && (
-              <PromotionModal
-                square={promotionSquares.to}
-                color={referee.getCurrentPlayer()}
-                onSelect={(piece) => {
-                  // Handle promotion selection
-                  const moveData = new MoveData({
-                    from: promotionSquares.from,
-                    to: promotionSquares.to,
-                    squares: referee.getCurrentBoard(),
-                    isPromotion: true,
-                    promotionPiece: piece,
-                    isFromIA: false
-                  });
-                  handleMove(moveData);
-                  setShowPromotionModal(false);
-                  setPromotionSquares(null);
-                }}
-                onClose={() => {
-                  setShowPromotionModal(false);
-                  setPromotionSquares(null);
-                }}
-              />
-            )}
-
-            {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
             <div className="board-container">
-              <div className="game-content">
-                <Graveyard
-                  captured={capturedByBlack}
-                  player="black"
-                  graveDiff={graveDiff.black > 0 ? graveDiff.black : 0}
+              <div className="game-board">
+                <Board
+                  onMove={handlePuzzleMove}
+                  onPromotion={handlePromotion}
+                  lastMove={lastMove}
+                  gameStatus={gameStatus}
+                  referee={referee}
                 />
-                <div className="game-board">
-                  <Board
-                    onMove={handleMove}
-                    onPromotion={handlePromotion}
-                    lastMove={lastMove}
-                    gameStatus={gameStatus}
-                    referee={referee}
-                  />
-                </div>
-
-                <Graveyard
-                  captured={capturedByWhite}
-                  player="white"
-                  graveDiff={graveDiff.white > 0 ? graveDiff.white : 0}
-                />
-
-                <TimerDisplay
-                  timeLeft={timeLeft}
-                  formatTime={formatTime}
-                  currentPlayer={referee.getCurrentPlayer()}
-                />
-                <div className="game-info">
-                  <MoveHistory
-                    history={referee.getHistory()}
-                    onJumpToMove={(i) => referee.jumpTo(i)}
-                  />
-                </div>
               </div>
             </div>
-          </>
+            </>
+            ) : (
+            <>
+              <VictoryMessage
+                gameStatus={gameStatus}
+                winner={winner}
+                onPlayAgain={() => window.location.reload()}
+              />
+
+              {showPromotionModal && (
+                <PromotionModal
+                  square={promotionSquares.to}
+                  color={referee.getCurrentPlayer()}
+                  onSelect={(piece) => {
+                    // Handle promotion selection
+                    const moveData = new MoveData({
+                      from: promotionSquares.from,
+                      to: promotionSquares.to,
+                      squares: referee.getCurrentBoard(),
+                      isPromotion: true,
+                      promotionPiece: piece,
+                      isFromIA: false
+                    });
+                    handleMove(moveData);
+                    setShowPromotionModal(false);
+                    setPromotionSquares(null);
+                  }}
+                  onClose={() => {
+                    setShowPromotionModal(false);
+                    setPromotionSquares(null);
+                  }}
+                />
+              )}
+
+              {isAiThinking && <div className="ai-thinking">AI is thinking...</div>}
+              <div className="board-container">
+                <div className="game-content">
+                  <Graveyard
+                    captured={capturedByBlack}
+                    player="black"
+                    graveDiff={graveDiff.black > 0 ? graveDiff.black : 0}
+                  />
+                  <div className="game-board">
+                    <Board
+                      onMove={puzzleMode ? handlePuzzleMove : handleMove}
+                      onPromotion={handlePromotion}
+                      lastMove={lastMove}
+                      gameStatus={gameStatus}
+                      referee={referee}
+                    />
+                  </div>
+
+                  <Graveyard
+                    captured={capturedByWhite}
+                    player="white"
+                    graveDiff={graveDiff.white > 0 ? graveDiff.white : 0}
+                  />
+
+                  <TimerDisplay
+                    timeLeft={timeLeft}
+                    formatTime={formatTime}
+                    currentPlayer={referee.getCurrentPlayer()}
+                  />
+                  <div className="game-info">
+                    <MoveHistory
+                      history={referee.getHistory()}
+                      onJumpToMove={(i) => referee.jumpTo(i)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
         )}
-      </div>
+          </div>
     </ThemeProvider>
   );
 }

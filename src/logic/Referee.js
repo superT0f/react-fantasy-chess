@@ -9,33 +9,7 @@ export default class Referee {
       squares: this.getInitialBoard(),
       pgn: 'Start'
     }];
-    this.currentMoveIndex = 0;
-    this.turn = 'white';
-    this.player = 'white';
-  }
-
-  getInitialBoard() {
-    const staleMate = [
-      'k', '', '', 'N', '', '', '', '',
-      'p', 'N', 'B', '', '', '', '', '',
-      'P', 'p', '', '', '', '', '', '',
-      '', '', '', '', '', '', '', '',
-      '', 'P', '', '', '', '', '', '',
-      '', '', '', 'P', '', 'Q', '', '',
-      '', '', 'P', '', 'P', 'P', 'P', 'P',
-      'R', 'N', '', '', '', '', 'N', 'R'
-    ];
-    const checkMate = [
-      'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
-      'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
-      '', '', '', '', '', '', '', '',
-      '', '', '', '', '', '', '', '',
-      '', '', 'B', '', '', '', '', '',
-      '', '', '', 'P', '', '', '', 'Q',
-      'P', 'P', 'P', '', 'P', 'P', 'P', 'P',
-      'R', 'N', 'B', '', 'K', '', 'N', 'R'
-    ];
-    const defaultBoard = [
+    this.defaultInitialBoard = [
       'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
       'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
       '', '', '', '', '', '', '', '',
@@ -45,7 +19,17 @@ export default class Referee {
       'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
       'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'
     ];
-    return defaultBoard;
+    this.initialBoard = this.defaultInitialBoard;
+    this.currentMoveIndex = 0;
+    this.turn = 'white';
+    this.player = 'white';
+  }
+
+  setInitialBoard(squares) {
+    this.initialBoard = squares;
+  }
+  getInitialBoard() {
+    return this.initialBoard;
   }
 
   reset() {
@@ -411,12 +395,7 @@ export default class Referee {
     for (let i = 0; i < 64; i++) {
       const piece = squares[i];
       if (piece && Entity.getColorByEntity(piece) !== player) {
-        if (i === 16) {
-          Log.chessBoardPretty(squares);
-          console.log('break me');
-        }
         if (this.isValidMove(i, kingPosition, squares)) {
-          Log.debug(`${PgnNotation.idxToXY(i)} can move to king ${kingPosition}`);
           return true;
         }
       }

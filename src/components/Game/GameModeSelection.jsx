@@ -1,37 +1,124 @@
 import { useState } from 'react';
+import { PuzzleSolver } from './PuzzleSolver';
 
-export function GameModeSelection({ onStartNewGame }) {
+export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
+  const [selectedMode, setSelectedMode] = useState(null);
   const [aiDifficulty, setAiDifficulty] = useState('easy');
   const [isAggressive, setIsAggressive] = useState(true);
+
+  const handleModeSelect = (mode) => {
+    if (mode === 'pvp' || mode === 'puzzle')
+      onStartNewGame(mode);
+    else
+      setSelectedMode(mode);
+  };
+
+  const startAIGame = () => {
+    onStartNewGame('ai', aiDifficulty, isAggressive);
+  };
+
+  const backToModeSelection = () => {
+    setSelectedMode(null);
+  };
+
+  if (selectedMode === 'ai') {
+    return (
+      <div className="mode-selection">
+        <h2>Configure AI Opponent</h2>
+
+        <div className="ai-config-section">
+          <h3>Difficulty Level</h3>
+          <div className="difficulty-options">
+            <button
+              className={`difficulty-btn ${aiDifficulty === 'easy' ? 'selected' : ''}`}
+              onClick={() => setAiDifficulty('easy')}
+            >
+              ♟️ Easy
+              <span className="difficulty-desc">Good for beginners</span>
+            </button>
+
+            <button
+              className={`difficulty-btn ${aiDifficulty === 'medium' ? 'selected' : ''}`}
+              onClick={() => setAiDifficulty('medium')}
+            >
+              ♞ Medium
+              <span className="difficulty-desc">Balanced challenge</span>
+            </button>
+
+            <button
+              className={`difficulty-btn ${aiDifficulty === 'hard' ? 'selected' : ''}`}
+              onClick={() => setAiDifficulty('hard')}
+            >
+              ♛ Hard
+              <span className="difficulty-desc">For experienced players</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="ai-config-section">
+          <h3>AI Personality</h3>
+          <div className="personality-toggle">
+            <label className="toggle-label">
+              <input
+                type="checkbox"
+                checked={isAggressive}
+                onChange={(e) => setIsAggressive(e.target.checked)}
+              />
+              <span className="toggle-slider"></span>
+              <span className="toggle-text">
+                {isAggressive ? '⚔️ Aggressive' : '🛡️ Defensive'}
+              </span>
+            </label>
+            <p className="personality-desc">
+              {isAggressive
+                ? 'Prefers attacking moves and captures'
+                : 'Focuses on defense and position'
+              }
+            </p>
+          </div>
+        </div>
+
+        <div className="ai-actions">
+          <button className="back-btn" onClick={backToModeSelection}>
+            ← Back
+          </button>
+          <button className="start-btn" onClick={startAIGame}>
+            Start Game vs AI
+          </button>
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div className="mode-selection">
       <h2>Select Game Mode</h2>
       <div className="mode-options">
-        <button onClick={() => onStartNewGame('ai', aiDifficulty, isAggressive)}>Play vs AI</button>
-        <button onClick={() => onStartNewGame('pvp')}>locale two players</button>
-      </div>
-      <div className="ai-difficulty">
-        <h3>Select AI Difficulty</h3>
-        <select
-          value={aiDifficulty}
-          onChange={(e) => setAiDifficulty(e.target.value)}
+        <button
+          className="mode-btn ai-mode"
+          onClick={() => handleModeSelect('ai')}
         >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
+          <span className="mode-icon">🤖 <span className="mode-title">Play vs AI</span></span>
+          
+          <span className="mode-desc">Challenge computer opponent</span>
+        </button>
+        <button
+          className="mode-btn puzzle-mode"
+          onClick={onStartPuzzle}
+        >
+          <span className="mode-icon">🧩 <span className="mode-title">Puzzles</span> </span>
+          
+          <span className="mode-desc">Challenge yourself 🙃</span>
+        </button><button
+          className="mode-btn pvp-mode"
+          onClick={() => handleModeSelect('pvp')}
+        >
+          <span className="mode-icon">👥 <span className="mode-title">Two Players</span></span>
+          
+          <span className="mode-desc">Play with a friend locally</span>
+        </button>
       </div>
-      <div className="ai-aggressivity">
-        <label>
-          <input
-            type="checkbox"
-            checked={isAggressive}
-            onChange={(e) => setIsAggressive(e.target.checked)}
-          />
-          Aggressive AI
-        </label>
-      </div>
-    </div>
+    </div >
   );
 }
