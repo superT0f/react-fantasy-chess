@@ -31,7 +31,7 @@ export default class ChessAI {
         // Use book moves in opening / middle
         if (referee.getHistory().length < 18) {
             const bookMove = this.getBookMove(referee.getHistory());
-            if (bookMove && this.isMoveSafe(bookMove, squares, player)) {
+            if (bookMove) {
                 return bookMove;
             }
         }
@@ -410,22 +410,29 @@ export default class ChessAI {
 
 
 
-    static getBookMove(moveHistory) {
-        const currentMoves = moveHistory.map(move =>
-            PgnNotation.idxToXY(move.from) + PgnNotation.idxToXY(move.to)
-        ).join(',');
-
-        for (const opening of openings.openings) {
-            const openingMoves = opening.moves.slice(0, moveHistory.length + 1).join(',');
-            if (currentMoves === openingMoves) {
-                const nextMove = opening.moves[moveHistory.length];
-                if (nextMove) {
-                    const from = PgnNotation.xyToIdx(nextMove.substring(0, 2));
-                    const to = PgnNotation.xyToIdx(nextMove.substring(2, 4));
-                    return { from, to };
-                }
+static getBookMove(moveHistory) {
+    // Filter out the "Start" entry and any invalid moves
+    const validMoves = moveHistory.filter(move => 
+        move.pgn !== 'Start' && move.from !== undefined && move.to !== undefined
+    );
+    
+    if (validMoves.length === 0) return null;
+    
+    const currentMoves = validMoves.map(move =>
+        PgnNotation.idxToXY(move.from) + PgnNotation.idxToXY(move.to)
+    ).join(',');
+    
+    for (const opening of openings.openings) {
+        const openingMoves = opening.moves.slice(0, validMoves.length).join(',');
+        if (currentMoves === openingMoves) {
+            const nextMove = opening.moves[validMoves.length];
+            if (nextMove) {
+                const from = PgnNotation.xyToIdx(nextMove.substring(0, 2));
+                const to = PgnNotation.xyToIdx(nextMove.substring(2, 4));
+                return { from, to };
             }
         }
-        return null;
     }
+    return null;
+}
 }
