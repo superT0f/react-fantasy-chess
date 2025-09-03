@@ -76,11 +76,17 @@ umount:
 	@echo "$(YELLOW)⬇️ Unmounting Gandi...$(NC)"
 	umount ./production && echo "$(GREEN)✓ Gandi unmounted$(NC)" || echo "$(YELLOW)⚠️  Failed to unmount Gandi (maybe already unmounted?)$(NC)"
 	@rmdir ./production 2>/dev/null || true
-
 ingest:
 	@echo "$(YELLOW)📥 Ingesting content...$(NC)"
 	gitingest ./src/
 	@echo "$(GREEN)✓ Content ingested$(NC)"
+	@ls -lh digest.txt
+
+ingest-light:
+	@echo "$(YELLOW)📥 Ingesting content without assets...$(NC)"
+	gitingest ./src/ -e assets
+	@echo "$(GREEN)✓ Content ingested$(NC)"
+	ls -lh digest.txt
 
 check-prod-link:
 	@echo "$(YELLOW)🔍 Checking production link...$(NC)"
