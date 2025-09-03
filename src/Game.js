@@ -139,12 +139,15 @@ export default function Game() {
 
     referee.recordMove(moveData);
 
+    const lastMoveData = referee.getLastMove();
+    const lastMoveNotation = lastMoveData ? lastMoveData.pgn : '';
+
     setLastMove({
       from: PgnNotation.idxToXY(moveData.from),
       to: PgnNotation.idxToXY(moveData.to),
       piece: moveData.promotionPiece || referee.getSquare(moveData.from),
       captured: moveData.captured,
-      notation: referee.getLastMove().pgn
+      notation: lastMoveNotation
     });
 
     const isOpponentInCheckmate = referee.isCheckmate(squares, opponent);
