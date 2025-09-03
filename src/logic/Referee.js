@@ -24,6 +24,29 @@ export default class Referee {
     this.turn = 'white';
     this.player = 'white';
   }
+  hasPieceMoved(position) {
+    // Check if this position has been involved in any move in history
+    for (let i = 1; i <= this.currentMoveIndex; i++) {
+      const move = this.history[i];
+      if (move.from === position) {
+        return true; // This position was the source of a move
+      }
+
+      // For castling, also check if the rook has moved
+      if (move.isCastle) {
+        const kingFrom = move.from;
+        const direction = move.to % 8 > move.from % 8 ? 1 : -1;
+        const rookFromCol = direction === 1 ? 7 : 0;
+        const rookFrom = Math.floor(kingFrom / 8) * 8 + rookFromCol;
+
+        if (rookFrom === position) {
+          return true; // This rook position was involved in castling
+        }
+      }
+    }
+
+    return false;
+  }
 
   setInitialBoard(squares) {
     this.initialBoard = squares;
@@ -324,7 +347,6 @@ export default class Referee {
       captured: moveData.captured,
       isCastle: moveData.isCastle
     });
-
     this.currentMoveIndex++;
     this.player = this.turn = this.player === 'white' ? 'black' : 'white';
     Log.debug(`recordMove end: 
