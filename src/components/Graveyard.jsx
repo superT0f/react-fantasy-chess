@@ -15,6 +15,21 @@ export function Graveyard({ captured, player, graveDiff }) {
     'q': '♛', 'Q': '♕'
   };
 
+  // Count pieces by type
+  const pieceCounts = captured.reduce((counts, piece) => {
+    counts[piece] = (counts[piece] || 0) + 1;
+    return counts;
+  }, {});
+
+  // Group pieces with counts and sort by value (highest first)
+  const groupedPieces = Object.entries(pieceCounts)
+    .map(([piece, count]) => ({
+      piece,
+      count,
+      value: eValues[piece] || 0
+    }))
+    .sort((a, b) => b.value - a.value); // Sort by value descending
+
   const total = captured.reduce((sum, piece) => sum + (eValues[piece] || 0), 0);
 
   return (
@@ -25,11 +40,12 @@ export function Graveyard({ captured, player, graveDiff }) {
           <div className="graveDiff">+{graveDiff}</div>
         )}
       </div>
-      <div className="captured">
-        {captured.map((piece, index) => (
-          <span key={index} className="captured" title={`Valeur: ${eValues[piece] || 0}`}>
-            {symbols[piece] || piece}
-          </span>
+      <div className="captured-pieces">
+        {groupedPieces.map(({ piece, count, value }, index) => (
+          <div key={index} className="captured-piece-group" title={`${count} ${piece.toLowerCase() === 'p' ? 'Pawns' : piece}, Value: ${value * count}`}>
+            <span className="piece-symbol">{symbols[piece] || piece}</span>
+            {count > 1 && <span className="piece-count">×{count}</span>}
+          </div>
         ))}
       </div>
       <div className="total-points">{total} points</div>

@@ -157,7 +157,61 @@ body {
   padding-top: 5px;
 }
 
-/* Responsive design pour le cimetière */
+.captured-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.captured-piece-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  min-width: 24px;
+  justify-content: center;
+}
+
+.piece-symbol {
+  font-size: 1.2em;
+}
+
+.piece-count {
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #ccc;
+}
+
+/* For the graveyard layout */
+.graveyard {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.graveyard-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.graveyard-header h3 {
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.total-points {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #d4af37;
+}
+
 @media (max-width: 768px) {
   .graveyard {
     min-width: 120px;
@@ -967,6 +1021,47 @@ body {
   gap: 1rem;
   justify-content: center;
   margin-top: 2rem;
+}
+
+.ai-thinking {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: pulse 2s infinite;
+}
+
+.ai-thinking::before {
+  content: "🧠";
+  font-size: 1.5rem;
+  animation: brain-pulse 1.5s infinite;
+}
+
+@keyframes brain-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(100, 100, 255, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(100, 100, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(100, 100, 255, 0); }
+}
+
+/* For the timer display when AI is thinking */
+.timer.black.active ~ .ai-thinking {
+  top: 50%;
+  right: calc(100% + 20px);
+  transform: translateY(-50%);
 }
 
 .back-btn, .start-btn {
