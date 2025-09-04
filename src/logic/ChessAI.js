@@ -75,16 +75,16 @@ export default class ChessAI {
             squares,
             null,
             true, // score moves
-            ChessAI.moveQualityEstimator // pass the function pointer
+            ChessAI.moveQualityEstimator.bind(ChessAI) // Bind the context
         );
-
         if (isMaximizing) {
             let maxEval = -Infinity;
             let bestMove = null;
 
             for (const move of validMoves) {
                 const newBoard = referee.simulateMove(squares, move.from, move.to);
-                const evaluation = this.minimax(referee, depth - 1, alpha, beta, false, newBoard, referee.getOpponent(player)).score;
+                const evaluation = this.minimax(referee, depth - 1, alpha, beta, false, newBoard,
+                    referee.getOpponent(player)).score;
 
                 if (evaluation > maxEval) {
                     maxEval = evaluation;
@@ -410,29 +410,29 @@ export default class ChessAI {
 
 
 
-static getBookMove(moveHistory) {
-    // Filter out the "Start" entry and any invalid moves
-    const validMoves = moveHistory.filter(move => 
-        move.pgn !== 'Start' && move.from !== undefined && move.to !== undefined
-    );
-    
-    if (validMoves.length === 0) return null;
-    
-    const currentMoves = validMoves.map(move =>
-        PgnNotation.idxToXY(move.from) + PgnNotation.idxToXY(move.to)
-    ).join(',');
-    
-    for (const opening of openings.openings) {
-        const openingMoves = opening.moves.slice(0, validMoves.length).join(',');
-        if (currentMoves === openingMoves) {
-            const nextMove = opening.moves[validMoves.length];
-            if (nextMove) {
-                const from = PgnNotation.xyToIdx(nextMove.substring(0, 2));
-                const to = PgnNotation.xyToIdx(nextMove.substring(2, 4));
-                return { from, to };
+    static getBookMove(moveHistory) {
+        // Filter out the "Start" entry and any invalid moves
+        const validMoves = moveHistory.filter(move =>
+            move.pgn !== 'Start' && move.from !== undefined && move.to !== undefined
+        );
+
+        if (validMoves.length === 0) return null;
+
+        const currentMoves = validMoves.map(move =>
+            PgnNotation.idxToXY(move.from) + PgnNotation.idxToXY(move.to)
+        ).join(',');
+
+        for (const opening of openings.openings) {
+            const openingMoves = opening.moves.slice(0, validMoves.length).join(',');
+            if (currentMoves === openingMoves) {
+                const nextMove = opening.moves[validMoves.length];
+                if (nextMove) {
+                    const from = PgnNotation.xyToIdx(nextMove.substring(0, 2));
+                    const to = PgnNotation.xyToIdx(nextMove.substring(2, 4));
+                    return { from, to };
+                }
             }
         }
+        return null;
     }
-    return null;
-}
 }

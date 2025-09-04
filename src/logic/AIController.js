@@ -6,7 +6,7 @@ import Entity from './Entity';
 export function useAIController({ gameMode, aiDifficulty, isAiAggressive, referee, gameStatus }) {
     const [isAiThinking, setIsAiThinking] = useState(false);
 
-    const makeAiMove = useCallback((currentSquares, onMove) => {
+    const makeAiMove = useCallback((currentSquares, onMove, setIsAiThinking) => {
         if (!currentSquares || gameStatus !== 'playing') return;
 
         if (gameMode === 'ai' && referee.getCurrentPlayer() === 'black') {
@@ -86,6 +86,8 @@ export function useAIController({ gameMode, aiDifficulty, isAiAggressive, refere
                     });
 
                     onMove(moveDataObj);
+                    setIsAiThinking(false);
+                    return true;
                 } else {
                     console.warn('makeAiMove: moveData is falsy after referee processing');
                 }
@@ -95,6 +97,8 @@ export function useAIController({ gameMode, aiDifficulty, isAiAggressive, refere
         } else {
             console.warn('AI is not allowed to play in this mode or it is not its turn');
         }
+        setIsAiThinking(false);
+        return false;
     }, [gameStatus, referee, gameMode, aiDifficulty, isAiAggressive]);
 
     return { isAiThinking, setIsAiThinking, makeAiMove };
