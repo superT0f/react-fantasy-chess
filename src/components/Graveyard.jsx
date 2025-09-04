@@ -1,4 +1,4 @@
-export function Graveyard({ captured, player, graveDiff }) {
+export function Graveyard({ captured, player, graveDiff, timeLeft, formatTime, active }) {
   const eValues = {
     'p': 1, 'P': 1,
     'n': 3, 'N': 3,
@@ -35,7 +35,10 @@ export function Graveyard({ captured, player, graveDiff }) {
   return (
     <div className={`graveyard graveyard-${player}`}>
       <div className="graveyard-header">
-        <h3>{player}</h3>
+        <h3>{player} : </h3>
+        <div className={`timer ${player} ${active ? 'active' : ''}`}>
+        {formatTime(timeLeft[player])}
+        </div>
         {graveDiff > 0 && (
           <div className="graveDiff">+{graveDiff}</div>
         )}

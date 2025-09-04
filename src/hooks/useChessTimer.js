@@ -1,9 +1,8 @@
-// hooks/useChessTimer.js - Version améliorée
 import { useState, useRef, useCallback } from 'react';
 
 export function useChessTimer(initialTime = 600) {
   const [timeLeft, setTimeLeft] = useState({ white: initialTime, black: initialTime });
-  const [currentPlayer, setCurrentPlayer] = useState('white');
+  const [currentPlayer, setCurrentPlayer] = useState(null);
   const timerRef = useRef(null);
 
   const startTimer = useCallback((player, onTimeout) => {
@@ -25,6 +24,12 @@ export function useChessTimer(initialTime = 600) {
     }, 1000);
   }, []);
 
+
+  const stoptTimers = () => {
+    clearInterval(timerRef.current);
+    setCurrentPlayer(null);
+  }
+
   const switchPlayer = useCallback((newPlayer, onTimeout) => {
     startTimer(newPlayer, onTimeout);
   }, [startTimer]);
@@ -37,14 +42,15 @@ export function useChessTimer(initialTime = 600) {
 
   const resetTimer = () => {
     setTimeLeft({ white: initialTime, black: initialTime });
-    setCurrentPlayer('white');
+    setCurrentPlayer(null);
     clearInterval(timerRef.current);
   };
 
   return { 
     timeLeft, 
-    currentPlayer: currentPlayer,
-    startTimer, 
+    currentPlayer,
+    startTimer,
+    stoptTimers,
     switchPlayer,
     formatTime, 
     resetTimer 
