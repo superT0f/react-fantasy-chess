@@ -95,8 +95,10 @@ check-prod-link:
 		|| echo "$(RED)❌ Not a valid production sources$(NC)"
 
 push: check-prod-link
-	@echo "$(YELLOW)⬆️ Pushing content to Gandi with rsync -avz...$(NC)"
-	@rsync -avz --no-owner --no-group ./build/* ./production/play/ \
+	@echo "$(YELLOW)⬆️ Pushing content : $(NC)"
+	@du -hs ./build
+	@echo "$(YELLOW) to Gandi ...$(NC)"
+	@time rsync -avz --no-owner --no-group ./build/* ./production/play/ \
 		&& echo "$(GREEN)✓ Pushed to Gandi$(NC)" \
 		|| echo "$(RED)❌ Failed to push to Gandi$(NC)"
 
