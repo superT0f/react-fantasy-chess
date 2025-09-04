@@ -259,12 +259,20 @@ export default class Referee {
     const newState = { ...currentState };
     let isCastle = false;
     let isEnPassant = false;
-    // click on previous : unselect
+    // double click on previous : unselect
     if (selectedSquare && selectedSquare === squareIndex) {
       newState.selectedSquare = null;
       newState.validMoves = [];
     }
-    //a previous square is selected
+    // first click on our entity : move 1/2
+    else if (this.getSquareColor(squareIndex) === this.turn) {
+      newState.selectedSquare = squareIndex;
+      newState.validMoves = this.getAllValidMoves(
+        squareIndex, this.getCurrentBoard(),
+        currentState.enPassantTarget);
+      newState.isOpponentPiece = false;
+    }
+    // a previous square is selected : move 2/2
     else if (selectedSquare !== null) {
       if (this.isValidMove(
         selectedSquare,
@@ -289,17 +297,10 @@ export default class Referee {
             isCastle,
           }
         };
-      } else {
+      } else if (this.getSquareColor(squareIndex) === this.turn){ // second move not valid : update select
         newState.selectedSquare = squareIndex;
         newState.validMoves = [];
       }
-    }
-    else if (this.getSquareColor(squareIndex) === this.turn) {
-      newState.selectedSquare = squareIndex;
-      newState.validMoves = this.getAllValidMoves(
-        squareIndex, this.getCurrentBoard(),
-        currentState.enPassantTarget);
-      newState.isOpponentPiece = false;
     }
     else {
       console.warn('Invalid square click:', PgnNotation.idxToXY(squareIndex), ' Selected:', selectedSquare);
