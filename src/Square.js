@@ -10,6 +10,7 @@ export function Square({
   onMouseLeave,
   isValidMove,
   isKingInCheck,
+  isCheckmate,
   isOpponentPiece,
   isEnPassantTarget,
   isLastMoveFrom,
@@ -28,6 +29,7 @@ export function Square({
         ${isValidMove && isOpponentPiece ? 'move-indicator-opponent' : ''}
         ${isValidMove && !isOpponentPiece ? 'move-indicator' : ''}
         ${isKingInCheck ? 'check' : ''}
+        ${isCheckmate ? 'checkmate' : ''}
         ${isEnPassantTarget ? 'en-passant-target' : ''}
         ${isLastMoveFrom ? 'last-move-from' : ''}
         ${isLastMoveTo ? 'last-move-to' : ''}

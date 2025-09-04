@@ -18,13 +18,13 @@ export function BoardRow({
             const squareIndex = row * 8 + col;
             var isValidMove = localState.validMoves.includes(squareIndex);
             const entityChar = referee.getSquare(squareIndex);
+            const isPlayerEntity = Entity.getColorByEntity(entityChar) === currentPlayer;
             const isKingInCheck = entityChar && entityChar.toLowerCase() === 'k' &&
-              referee.isCheck(referee.getCurrentBoard(), currentPlayer) &&
-              Entity.getColorByEntity(entityChar) === currentPlayer;
+              referee.isCheck(referee.getCurrentBoard(), currentPlayer) && isPlayerEntity;
 
             const isLastMoveFrom = lastMove?.from === PgnNotation.idxToXY(squareIndex);
             const isLastMoveTo = lastMove?.to === PgnNotation.idxToXY(squareIndex);
-
+            const isCheckmate =  isKingInCheck && referee.isCheckmate(referee.getCurrentBoard(), currentPlayer);
             return (
               <Square
                 key={squareIndex}
@@ -36,6 +36,7 @@ export function BoardRow({
                 isSelected={localState.selectedSquare === squareIndex}
                 isValidMove={isValidMove}
                 isKingInCheck={isKingInCheck}
+                isCheckmate={isCheckmate}
                 isAnimated={referee.lastMove === squareIndex}
                 isOpponentPiece={localState.isOpponentPiece}
                 isLastMoveFrom={isLastMoveFrom}

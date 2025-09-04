@@ -39,9 +39,19 @@ body {
 }
 
 #root button.square.check {
-  background: rgba(255, 0, 0, 0.3) !important;
+  background: rgba(245, 33, 33, 0.932) !important;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
 }
+
+#root button.square.checkmate {
+  box-shadow: 10px 10px 10px rgba(255, 0, 0, 0.5);
+  border: 3px solid rgb(241, 126, 80) !important;
+  
+  transform: scale(1.05);
+  animation: pulse 1s infinite;
+  z-index: 5;
+}
+
 
 .square {
   position: relative;
@@ -109,6 +119,7 @@ body {
 
 .graveyard-white {
   border-left: 3px solid white;
+  margin-top: 300px;
 }
 
 .graveyard-black {
@@ -326,11 +337,11 @@ body {
 }
 
 .timer {
-  padding: 15px 25px;
-  border-radius: 10px;
+  padding: 5px 15px;
+  border-radius: 5px;
   font-size: 0.9rem;
   font-weight: bold;
-  margin: 10px 0;
+  margin: 5px 0;
   /* width: 200px; */
   text-align: center;
   transition: all 0.3s ease;
@@ -348,11 +359,7 @@ body {
 }
 
 .timer.white {
-  /* background: linear-gradient(145deg, #f8f9fa, #e9ecef); 
-  color: #2c3e50;*/
   border: 3px solid #fff;
-  position: absolute;
-  bottom: 0;
 }
 
 .timer.active {
@@ -1121,12 +1128,18 @@ body {
     width: 50px;
     height: 50px;
   }
+  .graveyard-white {
+    margin-top: 150px;
+  }
 }
 
 @media (min-width: 992px) {
   .square {
     width: 60px;
     height: 60px;
+  }
+  .graveyard-white {
+    margin-top: 300px;
   }
 }
 
