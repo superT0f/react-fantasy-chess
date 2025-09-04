@@ -15,20 +15,13 @@ export default class ChessAI {
         let searchDepth;
 
         switch (difficulty) {
-            case 'easy':
-                searchDepth = 2;
-                break;
-            case 'medium':
-                searchDepth = 4;
-                break;
-            case 'hard':
-                searchDepth = 6;
-                break;
-            default:
-                searchDepth = 2;
+            case 'easy': searchDepth = 2; break;
+            case 'medium': searchDepth = 4; break;
+            case 'hard': searchDepth = 6; break;
+            default: searchDepth = 2;
         }
 
-        // Use book moves in opening / middle
+        // Use book moves in opening/middle
         if (referee.getHistory().length < 18) {
             const bookMove = this.getBookMove(referee.getHistory());
             if (bookMove) {
@@ -36,7 +29,22 @@ export default class ChessAI {
             }
         }
 
-        return this.minimax(referee, searchDepth, -Infinity, Infinity, true, squares, player).move;
+        // Get all valid moves first to check if any exist
+        const validMoves = referee.getAllValidMovesForPlayer(player, squares);
+        if (validMoves.length === 0) {
+            console.warn('No valid moves found for AI');
+            return null;
+        }
+
+        const result = this.minimax(referee, searchDepth, -Infinity, Infinity, true, squares, player);
+
+        // Ensure we have a valid move
+        if (!result.move) {
+            console.warn('Minimax returned no move, falling back to random move');
+            return validMoves[0]; // Return first valid move as fallback
+        }
+
+        return result.move;
     }
 
     static handleEndgame(squares, player) {
@@ -77,6 +85,12 @@ export default class ChessAI {
             true, // score moves
             ChessAI.moveQualityEstimator.bind(ChessAI) // Bind the context
         );
+        if (validMoves.length === 0) {
+            return {
+                score: isMaximizing ? -Infinity : Infinity,
+                move: null
+            };
+        }
         if (isMaximizing) {
             let maxEval = -Infinity;
             let bestMove = null;
