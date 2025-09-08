@@ -4,27 +4,23 @@ import { PromotionModal } from './components/Game/PromotionModal'
 import { VictoryMessage } from './components/Game/VictoryMessage';
 import { GameModeSelection } from './components/Game/GameModeSelection';
 import { MoveHistory } from './components/Game/MoveHistory';
-import { TimerDisplay } from './components/TimerDisplay';
 import { useChessTimer } from './hooks/useChessTimer';
 import { useAIController } from './logic/AIController';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import Referee from './logic/Referee';
-import Entity from './logic/Entity';
-import PgnNotation from './logic/PgnNotation';
-import MoveData from './logic/MoveData';
 import { Graveyard } from './components/Graveyard';
 import Log from './Log';
 import { PuzzleGameComponent } from './components/Game/PuzzleGame';
 import PuzzleGame from './logic/PuzzleGame';
-
-
-
+import chessEngine from './logic/chessEngine';
+import { WHITE, Chess, BLACK, Move } from 'chess.js';
 
 export default function Game() {
+  /** @type {Chess} */
+  const chess = chessEngine.getChess();
   const { theme } = useTheme();
-  const [referee] = useState(new Referee());
   const [gameMode, setGameMode] = useState(null);
   const [aiDifficulty, setAiDifficulty] = useState('easy');
+  const [aiColor, setAiColor] = useState(BLACK);
   const [gameStatus, setGameStatus] = useState('playing');
   const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
@@ -32,24 +28,19 @@ export default function Game() {
   const [promotionSquares, setPromotionSquares] = useState(null);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
 
-
-
   const [puzzleMode, setPuzzleMode] = useState(false);
-  const [puzzleGame] = useState(new PuzzleGame(referee));
-
-
+  const [puzzleGame] = useState(new PuzzleGame());
   const [feedback, setFeedback] = useState('');
   const { isAiThinking, setIsAiThinking, makeAiMove } = useAIController({
     gameMode,
     aiDifficulty,
     isAiAggressive,
-    referee,
+    chessEngine,
     gameStatus
   });
 
   const {
     timeLeft,
-    currentPlayer: timerPlayer,
     startTimer,
     stoptTimers,
     switchPlayer,
@@ -59,7 +50,17 @@ export default function Game() {
 
   const [capturedByWhite, setCapturedByWhite] = useState([]);
   const [capturedByBlack, setCapturedByBlack] = useState([]);
-
+  const updateCaptured = (
+    /** @type PieceSymbol */
+    piece_type,
+  ) => {
+    if (!piece_type) return;
+    if (chess.turn() === WHITE) {
+      setCapturedByWhite(prev => [...prev, piece_type]);
+    } else {
+      setCapturedByBlack(prev => [...prev, piece_type]);
+    }
+  };
   const computeGraveDiff = () => {
     const eValues = {
       'p': 1, 'P': 1,
@@ -78,19 +79,29 @@ export default function Game() {
     };
   };
 
-  function startNewGame(mode, difficulty = 'easy', aggressive = true) {
-    Log.debug(`startNewGame with mode:${mode}, difficulty:${difficulty}, aggressive:${aggressive}`);
-
-    referee.reset();
+  function startNewGame(mode, difficulty = 'easy', aggressive = true, aiColor = BLACK) {
+    Log.debug(`startNewGame =
+        mode         :${mode},
+        difficulty   :${difficulty}, 
+        aggressive   :${aggressive}, 
+        aiColor      :${aiColor}`);
+    chess.reset();
     resetTimer();
     startTimer('white', onTimeout);
     setGameMode(mode);
     setAiDifficulty(difficulty);
+    setAiColor(aiColor);
     setIsAiAggressive(aggressive);
     setGameStatus('playing');
     setWinner(null);
     setCapturedByWhite([]);
     setCapturedByBlack([]);
+    if (mode === 'ai' && aiColor === WHITE) {
+      setIsAiThinking(true);
+      setTimeout(() => {
+        makeAiMove(handleMove, setIsAiThinking);
+      }, 1500);
+    }
   }
 
   const handlePromotion = (from, to) => {
@@ -98,9 +109,12 @@ export default function Game() {
     setShowPromotionModal(true);
   };
 
-  function handleMove(moveData) {
+  function handleMove(
+    /**
+     * @type {Move} */
+    move) {
     if (puzzleMode) {
-      handlePuzzleMove(moveData);
+      handlePuzzleMove(move);
       return true;
     }
 
@@ -108,74 +122,45 @@ export default function Game() {
       Log.debug('Game not in playing state, ignoring move');
       return false;
     }
-    const currentPlayer = referee.getCurrentPlayer();
-    // Check if this is an AI move that requires promotion
-    const isAiMove = moveData.isFromIA;
-    const isPromotionMove = referee.isPromotionMove(moveData.from, moveData.to);
 
-    // If it's an AI move that requires promotion, auto-promote to queen
-    if (isAiMove && isPromotionMove && !moveData.isPromotion) {
-      Log.debug('AI promotion detected, auto-promoting to queen');
-      moveData.isPromotion = true;
-      moveData.promotionPiece = 'q';
-
-      // Update the squares with the promoted piece
-      const newSquares = [...moveData.squares];
-      const promotionChar = currentPlayer === 'white' ? 'Q' : 'q';
-      newSquares[moveData.to] = promotionChar;
-      moveData.squares = newSquares;
+    if (move.captured) {
+      updateCaptured(move.captured);
     }
 
-    const opponent = currentPlayer === 'white' ? 'black' : 'white';
-    const { squares, isFromIA } = moveData;
-
-    if (moveData.captured) {
-      if (currentPlayer === 'white') {
-        setCapturedByWhite(prev => [...prev, moveData.captured]);
-      } else {
-        setCapturedByBlack(prev => [...prev, moveData.captured]);
-      }
-    }
-
-
-    referee.recordMove(moveData);
-
-    const lastMoveData = referee.getLastMove();
+    const lastMoveData = move;
     const lastMoveNotation = lastMoveData ? lastMoveData.pgn : '';
 
     setLastMove({
-      from: PgnNotation.idxToXY(moveData.from),
-      to: PgnNotation.idxToXY(moveData.to),
-      piece: moveData.promotionPiece || referee.getSquare(moveData.from),
-      captured: moveData.captured,
+      from: move.from,
+      to: move.to,
+      piece: move.promotion || chess.get(move.from),
+      captured: move.captured,
       notation: lastMoveNotation
     });
-    // Get the UPDATED board after the move was recorded
-    const updatedBoard = referee.getCurrentBoard();
-    const isOpponentInCheckmate = referee.isCheckmate(updatedBoard, opponent);
-    const isOpponentInStalemate = !isOpponentInCheckmate && referee.isStalemate(updatedBoard, opponent);
-
-
-
-
-    if (isOpponentInCheckmate) {
+    if (chess.isCheckmate()) {
+      // side to move is checkmated : looser
+      const winner = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
       stoptTimers();
-      setWinner(currentPlayer);
+      setWinner(winner);
       setGameStatus('checkmate');
       return true;
-    } else if (isOpponentInStalemate) {
+    }
+    if (chess.isStalemate()) {
       stoptTimers();
       setGameStatus('stalemate');
       return true;
     }
 
-    const newPlayer = referee.getCurrentPlayer();
+    // timer switch
+    const newPlayer = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
     switchPlayer(newPlayer, onTimeout);
 
-    if (gameMode === 'ai' && !isFromIA && newPlayer === 'black') {
+    // trigger ai move after player
+    const isAITurn = (aiColor === chess.turn());
+    if (gameMode === 'ai' && isAITurn) {
       setIsAiThinking(true);
       setTimeout(() => {
-        makeAiMove(updatedBoard, handleMove, setIsAiThinking);
+        makeAiMove(handleMove, setIsAiThinking);
 
       }, 1500);
     }
@@ -184,15 +169,15 @@ export default function Game() {
   }
 
 
-  const handlePuzzleMove = (moveData) => {
+  const handlePuzzleMove = (move) => {
     Log.debug(`handlePuzzleMove`);
-    Log.debug(moveData);
-    const result = puzzleGame.validateMove(moveData);
+    Log.debug(move);
+    const result = puzzleGame.validateMove(move);
 
     if (result.isValid) {
       // Process the move normally
-      //handleMove(moveData);
-      referee.recordMove(moveData);
+      handleMove(chess.move({ from: move.from, to: move.to, promotion: move.promotion }));
+
       setFeedback(result.feedback);
       if (result.isComplete) {
         // Puzzle completed, you might want to show a celebration
@@ -200,7 +185,7 @@ export default function Game() {
       }
     } else {
       Log.debug('handlePuzzleMove move not valid!');
-      Log.debug(moveData);
+      Log.debug(move);
     }
   };
 
@@ -208,8 +193,10 @@ export default function Game() {
   const graveDiff = computeGraveDiff();
 
   const onTimeout = () => {
+    // side to move is loosing by time
+    const winner = (chess.turn === WHITE) ? 'BLACK' : 'WHITE';
     setGameStatus('timeout');
-    setWinner(referee.getCurrentPlayer() === 'white' ? 'black' : 'white');
+    setWinner(winner);
     clearInterval(timerRef.current);
   };
 
@@ -221,7 +208,7 @@ export default function Game() {
     const isTimeout = timeLeft.white <= 0 || timeLeft.black <= 0;
     if (isTimeout) {
       setGameStatus('timeout');
-      setWinner(timeLeft.white <= 0 ? 'black' : 'white');
+      setWinner(timeLeft.white <= 0 ? 'BLACK' : 'WHITE');
       clearInterval(timerRef.current);
     }
   }, [timeLeft, gameStatus]);
@@ -251,7 +238,6 @@ export default function Game() {
                   onPromotion={handlePromotion}
                   lastMove={lastMove}
                   gameStatus={gameStatus}
-                  referee={referee}
                 />
               </div>
             </div>
@@ -267,18 +253,15 @@ export default function Game() {
             {showPromotionModal && (
               <PromotionModal
                 square={promotionSquares.to}
-                color={referee.getCurrentPlayer()}
+                color={chess.turn()}
                 onSelect={(piece) => {
-                  // Handle promotion selection
-                  const moveData = new MoveData({
-                    from: promotionSquares.from,
-                    to: promotionSquares.to,
-                    squares: referee.getCurrentBoard(),
-                    isPromotion: true,
-                    promotionPiece: piece,
-                    isFromIA: false
-                  });
-                  handleMove(moveData);
+                  handleMove(chess.move(
+                    {
+                      from: promotionSquares.from,
+                      to: promotionSquares.to,
+                      promotion: piece?.type
+                    }
+                  ));
                   setShowPromotionModal(false);
                   setPromotionSquares(null);
                 }}
@@ -299,7 +282,7 @@ export default function Game() {
                     timeLeft={timeLeft}
                     formatTime={formatTime}
                     graveDiff={graveDiff.black > 0 ? graveDiff.black : 0}
-                    active={referee.getCurrentPlayer() === 'black'}
+                    active={!chess.isGameOver && chess.turn() === 'black'}
                   />
                   <Graveyard
                     captured={capturedByWhite}
@@ -307,34 +290,20 @@ export default function Game() {
                     timeLeft={timeLeft}
                     formatTime={formatTime}
                     graveDiff={graveDiff.white > 0 ? graveDiff.white : 0}
-                    active={referee.getCurrentPlayer() === 'white'}
+                    active={!chess.isGameOver && chess.turn() === 'white'}
                   />
                 </div>
-                {/* <TimerDisplay
-                    timeLeft={timeLeft}
-                    formatTime={formatTime}
-                    player='black'
-                    active={referee.getCurrentPlayer() === 'black'}
-                  /> */}
                 <div className="game-board">
                   <Board
                     onMove={puzzleMode ? handlePuzzleMove : handleMove}
                     onPromotion={handlePromotion}
                     lastMove={lastMove}
                     gameStatus={gameStatus}
-                    referee={referee}
                   />
                 </div>
-                {/* <TimerDisplay
-                    timeLeft={timeLeft}
-                    formatTime={formatTime}
-                    player='white'
-                    active={referee.getCurrentPlayer() === 'white'}
-                  /> */}
                 <div className="game-info">
                   <MoveHistory
-                    history={referee.getHistory()}
-                    onJumpToMove={(i) => referee.jumpTo(i)}
+                    history={chess.history()}
                   />
                 </div>
               </div>

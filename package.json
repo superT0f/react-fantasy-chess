@@ -10,11 +10,12 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "chess.js": "^1.4.0",
+    "chess.ts": "^0.16.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "^5.0.0"
   },
-  "devDependencies": {},
   "browserslist": {
     "production": [
       ">0.2%",
@@ -26,5 +27,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "node-fs": "^0.1.7"
   }
 }

@@ -48,7 +48,6 @@ export function useChessTimer(initialTime = 600) {
 
   return { 
     timeLeft, 
-    currentPlayer,
     startTimer,
     stoptTimers,
     switchPlayer,

@@ -1,17 +1,25 @@
 import openings from '../assets/openings.json';
 import PgnNotation from './PgnNotation';
-import Entity from './Entity';
+import chessEngine from './chessEngine';
+import { Piece, Chess } from 'chess.js';
 
 export default class ChessAI {
 
     static moveQualityEstimator = ChessAI.estimateMoveQuality;
+    /**
+     * @type {Chess} */
+    static chess = chessEngine.getChess();
 
     // Allow custom estimators
     static setMoveQualityEstimator(estimator) {
         ChessAI.moveQualityEstimator = estimator;
     }
 
-    static getAIMove(referee, squares, player, difficulty) {
+    static getAIMove(
+        /**
+         * @type {Chess} */
+        chess,
+        difficulty) {
         let searchDepth;
 
         switch (difficulty) {
@@ -20,23 +28,31 @@ export default class ChessAI {
             case 'hard': searchDepth = 6; break;
             default: searchDepth = 2;
         }
+        if (chess.history().length === 0) {
+            const bestMoves = [
+                { from: 'e2', to: 'e4' },
+                { from: 'd2', to: 'd4' },
+                { from: 'b1', to: 'c3' },
+            ]
+            return bestMoves[Math.floor(Math.random() * bestMoves.length)];
 
+        }
         // Use book moves in opening/middle
-        if (referee.getHistory().length < 18) {
-            const bookMove = this.getBookMove(referee.getHistory());
+        if (chess.history().length < 18) {
+            const bookMove = this.getBookMove(chess.history({ verbose: true }));
             if (bookMove) {
                 return bookMove;
             }
         }
 
         // Get all valid moves first to check if any exist
-        const validMoves = referee.getAllValidMovesForPlayer(player, squares);
+        const validMoves = chess.moves({ verbose: true })
         if (validMoves.length === 0) {
             console.warn('No valid moves found for AI');
             return null;
         }
 
-        const result = this.minimax(referee, searchDepth, -Infinity, Infinity, true, squares, player);
+        const result = this.minimax(validMoves, searchDepth, -Infinity, Infinity, true);
 
         // Ensure we have a valid move
         if (!result.move) {
@@ -59,32 +75,13 @@ export default class ChessAI {
         return null;
     }
 
-    static iterativeDeepening(referee, squares, player, maxTime = 5000) {
-        let bestMove = null;
-        let depth = 1;
-        const startTime = Date.now();
+    static minimax(validMoves, depth, alpha, beta, isMaximizing) {
 
-        while (Date.now() - startTime < maxTime && depth <= 6) {
-            const result = this.minimax(referee, depth, -Infinity, Infinity, true, squares, player);
-            bestMove = result.move;
-            depth++;
-        }
-
-        return bestMove;
-    }
-
-    static minimax(referee, depth, alpha, beta, isMaximizing, squares, player) {
         if (depth === 0) {
-            return { score: this.evaluateBoard(squares, player) };
+            const score = this.evaluateBoard();
+            return { score: score };
         }
 
-        const validMoves = referee.getAllValidMovesForPlayer(
-            player,
-            squares,
-            null,
-            true, // score moves
-            ChessAI.moveQualityEstimator.bind(ChessAI) // Bind the context
-        );
         if (validMoves.length === 0) {
             return {
                 score: isMaximizing ? -Infinity : Infinity,
@@ -96,10 +93,15 @@ export default class ChessAI {
             let bestMove = null;
 
             for (const move of validMoves) {
-                const newBoard = referee.simulateMove(squares, move.from, move.to);
-                const evaluation = this.minimax(referee, depth - 1, alpha, beta, false, newBoard,
-                    referee.getOpponent(player)).score;
-
+                this.chess.move(move);
+                const evaluation = this.minimax(
+                    this.chess.moves({ verbose: true }),
+                    depth - 1,
+                    alpha,
+                    beta,
+                    false
+                ).score;
+                this.chess.undo();
                 if (evaluation > maxEval) {
                     maxEval = evaluation;
                     bestMove = move;
@@ -115,9 +117,15 @@ export default class ChessAI {
             let bestMove = null;
 
             for (const move of validMoves) {
-                const newBoard = referee.simulateMove(squares, move.from, move.to);
-                const evaluation = this.minimax(referee, depth - 1, alpha, beta, true, newBoard,
-                    referee.getOpponent(player)).score;
+                this.chess.move(move);
+                const evaluation = this.minimax(
+                    this.chess.moves({ verbose: true }),
+                    depth - 1,
+                    alpha,
+                    beta,
+                    true
+                ).score;
+                this.chess.undo();
 
                 if (evaluation < minEval) {
                     minEval = evaluation;
@@ -132,41 +140,32 @@ export default class ChessAI {
         }
     }
 
-    static evaluateBoard(squares, player) {
+    static evaluateBoard() {
         let score = 0;
 
         // entities values
         const values = {
-            'p': 1, 'P': 1,
-            'n': 3, 'N': 3,
-            'b': 3, 'B': 3,
-            'r': 5, 'R': 5,
-            'q': 9, 'Q': 9,
-            'k': 100, 'K': 100
+            'p': 1,
+            'n': 3,
+            'b': 3,
+            'r': 5,
+            'q': 9,
+            'k': 10000
         };
-
-        // Position bonuses (simplified example)
-        const pawnPositionBonus = [
-            // ... position-based scoring tables
-        ];
 
         // Material count
         for (let i = 0; i < 64; i++) {
-            if (!squares[i]) continue;
+            /**
+             * @type {Piece | null}
+             */
+            const piece = this.chess.get(PgnNotation.idxToXY(i));
+            if (!piece) continue;
+            const enitityValue = values[piece?.type] || 0;
 
-            const enitityValue = values[squares[i]] || 0;
-            const enitityColor = Entity.getColorByEntity(squares[i]);
-
-            // Add position bonuses
-            let positionBonus = 0;
-            if (squares[i].toLowerCase() === 'p') {
-                positionBonus = pawnPositionBonus[i] || 0;
-            }
-
-            if (enitityColor === player) {
-                score += enitityValue + positionBonus;
+            if (piece?.color === this.chess.turn()) {
+                score += enitityValue;
             } else {
-                score -= enitityValue + positionBonus;
+                score -= enitityValue;
             }
         }
 
@@ -174,7 +173,7 @@ export default class ChessAI {
         // score += this.evaluateMobility(squares, player);
         // score += this.evaluateKingSafety(squares, player);
         // score += this.evaluatePawnStructure(squares, player);
-
+        // Log.debug(`Board evaluation score: ${score}`);
         return score;
     }
 
@@ -333,15 +332,6 @@ export default class ChessAI {
 
     static isSquareProtected(square, squares, color) {
         // Check if square is attacked by friendly pieces
-        for (let i = 0; i < 64; i++) {
-            const piece = squares[i];
-            if (piece && Entity.getColorByEntity(piece) === color) {
-                const entity = Entity.fromChar(this.referee, i);
-                if (entity && entity.isValidMove(square)) {
-                    return true;
-                }
-            }
-        }
         return false;
     }
 
@@ -375,55 +365,6 @@ export default class ChessAI {
         return col >= 3 && col <= 4 && row >= 3 && row <= 4;
     }
 
-    static getRandomMove(referee, squares, player) {
-        if (player !== 'black') {
-            throw new Error('AI can only play as black');
-        }
-        if (referee.getHistory().length < 10) {
-            const openingMove = this.getBookMove(referee.getHistory());
-            if (openingMove) {
-                const entityChar = squares[openingMove.from];
-
-                const entity = Entity.fromChar(referee, openingMove.from);
-                if (entity.isValidMove(openingMove.to)) {
-                    const simulatedBoard = Entity.simulateMove(
-                        squares,
-                        openingMove.from,
-                        openingMove.to);
-                    if (!Entity.isCheck(simulatedBoard, player)) {
-                        return openingMove;
-                    }
-                } else {
-                    console.warn(`openning move is not valid : ${openingMove.from}->${openingMove.to}`)
-                }
-
-            }
-        }
-        const validMoves = [];
-
-        for (let from = 0; from < 64; from++) {
-            const entityChar = squares[from];
-            if (referee.getSquareColor(from) === player) {
-                const entity = Entity.fromChar(referee, from);
-                let enPassantTarget = entity.enPassantTarget;
-                referee.getAllValidMoves(from, enPassantTarget).forEach((to) => {
-                    validMoves.push({ from, to, enPassantTarget });
-                });
-            }
-        }
-
-        if (validMoves.length > 0) {
-            const randomIndex = Math.floor(Math.random() * validMoves.length);
-            return validMoves[randomIndex];
-        } else {
-            console.warn('No valid moves found for AI');
-        }
-
-        return null;
-    }
-
-
-
     static getBookMove(moveHistory) {
         // Filter out the "Start" entry and any invalid moves
         const validMoves = moveHistory.filter(move =>
@@ -433,7 +374,7 @@ export default class ChessAI {
         if (validMoves.length === 0) return null;
 
         const currentMoves = validMoves.map(move =>
-            PgnNotation.idxToXY(move.from) + PgnNotation.idxToXY(move.to)
+            move.from + move.to
         ).join(',');
 
         for (const opening of openings.openings) {
@@ -441,8 +382,8 @@ export default class ChessAI {
             if (currentMoves === openingMoves) {
                 const nextMove = opening.moves[validMoves.length];
                 if (nextMove) {
-                    const from = PgnNotation.xyToIdx(nextMove.substring(0, 2));
-                    const to = PgnNotation.xyToIdx(nextMove.substring(2, 4));
+                    const from = nextMove.substring(0, 2);
+                    const to = nextMove.substring(2, 4);
                     return { from, to };
                 }
             }

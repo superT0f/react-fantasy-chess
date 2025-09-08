@@ -1,14 +1,16 @@
-// src/components/Game/VictoryMessage.jsx
+import { BLACK, WHITE } from "chess.js";
+
 export function VictoryMessage({ gameStatus, winner, onPlayAgain }) {
+
   const messages = {
-    checkmate: `${winner === 'white' ? 'WHITE' : 'BLACK'} WINS BY CHECKMATE!`,
+    checkmate: "WINS BY CHECKMATE!",
     stalemate: "STALEMATE! IT'S A DRAW!",
-    timeout: `${winner === 'white' ? 'WHITE' : 'BLACK'} WINS BY TIMEOUT!`
+    timeout: "WINS BY TIMEOUT!"
   };
 
   const emojis = {
-    white: '🎉👑🎉',
-    black: '🎉🏴🎉',
+    WHITE: '🎉👑🎉',
+    BLACK: '🎉🏴🎉',
     draw: '🤝'
   };
 
@@ -18,7 +20,12 @@ export function VictoryMessage({ gameStatus, winner, onPlayAgain }) {
 
   return (
     <div className="victory-message">
-      <div className="victory-text">{messages[gameStatus]}</div>
+      <div className="victory-text">
+        <div className="victory-text-winner">
+        {winner}
+        </div>
+        {messages[gameStatus]}
+      </div>
       <div className="victory-emoji">
         {gameStatus === 'stalemate' ? emojis.draw : emojis[winner]}
       </div>

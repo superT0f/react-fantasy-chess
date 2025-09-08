@@ -1,122 +1,83 @@
 import { useState } from 'react';
-import Entity from '../logic/Entity';
-import MoveData from '../logic/MoveData';
-import Log from '../Log';
-import PgnNotation from '../logic/PgnNotation';
+import chessEngine from '../logic/chessEngine';
 
-export function useBoardState(referee, onMove, onPromotion) {
+export function useBoardState(onMove, onPromotion) {
   const [localState, setLocalState] = useState({
     selectedSquare: null,
     validMoves: [],
     lastMovedSquare: null,
     isOpponentPiece: false,
-    enPassantTarget: null,
-    promotionSquare: null // Add promotion state
+    promotionSquare: null
   });
 
-const handleSquareClick = (squareIndex, gameStatus) => {
-  if (gameStatus !== 'playing') {
-    Log.debug('Game not in playing state, ignoring click');
-    return;
-  }
+  const handleSquareClick = (toSquare, gameStatus) => {
+    const chess = chessEngine.getChess();
+    const fromSquare = localState.selectedSquare;
 
-  // Check if we're in promotion selection mode
-  if (localState.promotionSquare !== null) {
-    Log.debug('promotion detected');
-    handlePromotionSelection(moveData.from, moveData.to, squareIndex);
-    return;
-  }
-
-  const { newState, moveData } = referee.handleSquareClick(
-    squareIndex,
-    localState
-  );
-
-  setLocalState(newState);
-
-  if (moveData) {
-    // Only show promotion modal for human players, not AI
-    const isHumanPlayer = !moveData.isFromIA;
+    if (gameStatus !== 'playing' || chess.isGameOver()) return;
     
-    if (referee.isPromotionMove(moveData.from, moveData.to) && isHumanPlayer) {
-      onPromotion(moveData.from, moveData.to);
-      // we cant process this move yet : need user choice
+    const pieceFrom = chess.get(fromSquare);
+    const pieceTo = chess.get(toSquare);
+
+    if (!pieceTo && !fromSquare) return;
+    if (fromSquare === toSquare) {
+      // Deselect if clicking the same square
+      setLocalState({
+        selectedSquare: null,
+        validMoves: [],
+        isOpponentPiece: false
+      });
       return;
     }
 
-    // Process regular move (including AI promotion which auto-promotes to queen)
-    processMove(moveData);
-  } else {
-    Log.debug(`handleSquareClick: turn:${referee.turn} No valid move from square: ${squareIndex} - ${PgnNotation.idxToXY(squareIndex)}`);
-  }
-};
-
-  const handlePromotionSelection = (from, to, pieceSelection) => {
-    const promotionPieces = ['q', 'r', 'b', 'n'];
-    
-    if (promotionPieces.includes(pieceSelection)) {
-
-      const promotedSquares = referee.promotePawn(localState.promotionSquare, pieceSelection);
-      
-      const moveData = new MoveData({
-        from: from,
-        to: to,
-        squares: promotedSquares,
-        isPromotion: true,
-        promotionPiece: pieceSelection,
-        isFromIA: false
+    if (pieceTo?.color !== chess.turn() && !fromSquare) {
+      // Clicked on opponent's piece without selecting own piece
+      return;
+    }
+    if (pieceTo?.color === chess.turn()) {
+      // Own piece selection
+      const moves = chess.moves({ square: toSquare, verbose: true });
+      setLocalState({
+        selectedSquare: toSquare,
+        validMoves: moves.map(move => move.to),
+        isOpponentPiece: false
       });
+      return;
+    } 
+    
+    if (pieceFrom) {
+      // Pawn promotion check
+      if (pieceFrom?.type === 'p' && (toSquare[1] === '8' || toSquare[1] === '1')) {
+        onPromotion(fromSquare, toSquare);
+        return;
+      }
 
-      onMove(moveData);
-      
-      setLocalState(prev => ({
-        ...prev,
-        promotionSquare: null
-      }));
+      // Regular move attempt
+      try {
+        const move = chess.move({ from: fromSquare, to: toSquare });
+        setLocalState({
+          selectedSquare: null,
+          validMoves: [],
+          isOpponentPiece: false
+        });
+        onMove(move);
+      } catch (error) {
+        console.log('Invalid move:', error);
+      }
     }
   };
 
-  const processMove = (moveData) => {
-    const newSquares = [...referee.getCurrentBoard()];
-    const captured = newSquares[moveData.to];
-    if (moveData.isCastle) {
-      const direction = moveData.to % 8 > moveData.from % 8 ? 1 : -1;
-      const rookFromCol = direction === 1 ? 7 : 0;
-      const rookToCol = direction === 1 ? 5 : 3;
-      const rookFrom = Math.floor(moveData.from / 8) * 8 + rookFromCol;
-      const rookTo = Math.floor(moveData.from / 8) * 8 + rookToCol;
-      
-      newSquares[moveData.to] = newSquares[moveData.from];
-      newSquares[rookTo] = referee.getSquare(rookFrom);
-      newSquares[moveData.from] = '';
-      newSquares[rookFrom] = '';
-    } else {
-      newSquares[moveData.to] = newSquares[moveData.from];
-      newSquares[moveData.from] = '';
-    }
-
-    const moveDataObj = new MoveData({
-      from: moveData.from,
-      to: moveData.to,
-      squares: newSquares,
-      captured,
-      isEnPassant: moveData.isEnPassant,
-      isCheck: referee.isCheck(newSquares, referee.getCurrentOpponent()),
-      isCheckmate: referee.isCheckmate(newSquares, referee.getCurrentOpponent()),
-      isCastle: moveData.isCastle,
-      isFromIA: false
-    });
-
-    onMove(moveDataObj);
-  };
-
-  const handleMouseEnter = (squareIndex, gameStatus, squares, currentPlayer) => {
-    if (gameStatus !== 'playing') return;
-    if (squares[squareIndex] && !localState.selectedSquare) {
+  const handleMouseEnter = (square) => {
+    const chess = chessEngine.getChess();
+    if (chess.isGameOver()) return;
+    
+    const piece = chess.get(square);
+    if (!localState.selectedSquare && piece) {
+      const moves = chess.moves({ square: square, verbose: true });
       setLocalState(prev => ({
         ...prev,
-        isOpponentPiece: Entity.getColorByEntity(squares[squareIndex]) !== currentPlayer,
-        validMoves: referee.getAllValidMoves(squareIndex, squares, currentPlayer, localState.enPassantTarget)
+        isOpponentPiece: piece.color !== chess.turn(),
+        validMoves: moves.map(move => move.to)
       }));
     }
   };

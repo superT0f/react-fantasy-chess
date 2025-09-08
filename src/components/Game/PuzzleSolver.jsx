@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PgnNotation from '../../logic/PgnNotation';
 
 
-export function PuzzleSolver({ referee, onMove, onStartNewGame, isPuzzleMode, puzzleGame}) {
+export function PuzzleSolver({ onMove, onStartNewGame, isPuzzleMode, puzzleGame}) {
     const [puzzles] = useState(require('../../assets/puzzles.json').puzzles);
     const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
     const [feedback, setFeedback] = useState('');
@@ -22,7 +22,6 @@ export function PuzzleSolver({ referee, onMove, onStartNewGame, isPuzzleMode, pu
         // setCurrentPuzzle(null);
         // setFeedback('');
         // Reset to normal game
-        referee.reset();
     };
 
     if (!isPuzzleMode) {

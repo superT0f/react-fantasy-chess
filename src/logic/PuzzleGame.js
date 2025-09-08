@@ -1,10 +1,8 @@
-import Referee from './Referee';
 import PgnNotation from './PgnNotation';
 import Log from '../Log';
 
 export default class PuzzleGame {
-    constructor(referee) {
-        this.referee = referee;
+    constructor() {
         this.puzzles = require('../assets/puzzles.json').puzzles;
         this.currentPuzzle = null;
         this.currentMoveIndex = 0;
@@ -27,14 +25,6 @@ export default class PuzzleGame {
         // Parse FEN and set up the board
         const fenParts = puzzle.fen.split(' ');
         const board = this.parseFen(fenParts[0]);
-
-        // Reset referee state
-        this.referee.reset();
-        this.referee.setInitialBoard(board);
-        this.referee.history = [{ squares: board, pgn: 'Puzzle Start' }];
-        this.referee.currentMoveIndex = 0;
-        this.referee.player = fenParts[1] === 'w' ? 'white' : 'black';
-        this.referee.turn = this.referee.player;
 
         return puzzle;
     }
@@ -102,8 +92,6 @@ export default class PuzzleGame {
         if (!this.currentPuzzle) return;
 
         const board = this.parseFen(this.currentPuzzle.fen.split(' ')[0]);
-        this.referee.history = [{ squares: board, pgn: 'Puzzle Start' }];
-        this.referee.currentMoveIndex = 0;
         this.currentMoveIndex = 0;
     }
 

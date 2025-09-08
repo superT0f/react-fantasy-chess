@@ -1,8 +1,11 @@
-import EntityUI from './components/Entity';
-import PgnNotation from './logic/PgnNotation';
+import EntityUI from './EntityUI';
+import PgnNotation from "../../logic/PgnNotation";
 
-export function Square({
-  value,
+export function SquareUI({
+  /**
+ * @type {Piece | null}
+ */
+  piece,
   squareIndex,
   isSelected,
   onSquareClick,
@@ -16,13 +19,19 @@ export function Square({
   isLastMoveFrom,
   isLastMoveTo,
 }) {
+  const squareLabel = PgnNotation.idxToXY(squareIndex);
+  
   const row = Math.floor(squareIndex / 8);
   const col = squareIndex % 8;
 
   const isPositionsBottom = row == 7;
   const isPositionsRight = col == 7;
+
   return (
     <button
+      title={squareLabel}
+      alt={squareLabel}
+      aria-label={squareLabel}
       className={`square 
         ${isSelected ? 'selected' : ''} 
         ${isValidMove ? 'valid-move' : ''}
@@ -42,7 +51,7 @@ export function Square({
         <div className="positions bottom"> {PgnNotation.getLetter(squareIndex)}</div>}
       {isPositionsRight &&
         <div className="positions right"> {PgnNotation.getNumber(squareIndex)}</div>}
-      <EntityUI entity={value} />
+      <EntityUI piece={piece} />
     </button>
   );
 }

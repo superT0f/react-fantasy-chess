@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
-import EntityUI from '../Entity';
-
+import EntityUI from '../Board/EntityUI';
+import { Piece } from 'chess.js';
 export function PromotionModal({ color, onSelect, onClose }) {
   const [isVisible, setIsVisible] = useState(false);
-  const promotionPieces = ['q', 'r', 'b', 'n'];
+  /**
+   * @type {Piece[]}
+   */
+  const promotionPieces = [
+    {type : 'q', color : color},
+    {type : 'r', color : color},
+    {type : 'b', color : color},
+    {type : 'n', color : color}];
 
   useEffect(() => {
     setIsVisible(true);
@@ -41,7 +48,7 @@ export function PromotionModal({ color, onSelect, onClose }) {
               className="promotion-option"
               onClick={() => handleSelection(piece)}
             >
-              <EntityUI entity={color === 'white' ? piece.toUpperCase() : piece} />
+              <EntityUI piece={piece} />
             </button>
           ))}
         </div>

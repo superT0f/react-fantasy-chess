@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { PuzzleSolver } from './PuzzleSolver';
+import { BLACK, WHITE } from 'chess.js';
+import EntityUI from '../Board/EntityUI';
 
 export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
   const [selectedMode, setSelectedMode] = useState(null);
   const [aiDifficulty, setAiDifficulty] = useState('easy');
   const [isAggressive, setIsAggressive] = useState(true);
+  const [aiColor, setAiColor] = useState(BLACK);
 
   const handleModeSelect = (mode) => {
     if (mode === 'pvp' || mode === 'puzzle')
@@ -14,7 +17,7 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
   };
 
   const startAIGame = () => {
-    onStartNewGame('ai', aiDifficulty, isAggressive);
+    onStartNewGame('ai', aiDifficulty, isAggressive, aiColor);
   };
 
   const backToModeSelection = () => {
@@ -25,9 +28,27 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
     return (
       <div className="mode-selection">
         <h2>Configure AI Opponent</h2>
-
         <div className="ai-config-section">
-          <h3>Difficulty Level</h3>
+          <h3>Color</h3>
+          <div className="difficulty-options">
+            <button
+              className={`difficulty-btn ai-color-picker ${aiColor === BLACK ? 'selected' : ''}`}
+              onClick={() => setAiColor(BLACK)}
+            >
+              <EntityUI piece={ {color:'b', type:'p'}} />
+              <span className="difficulty-desc">Play as black</span>
+            </button>
+            <button
+              className={`difficulty-btn ai-color-picker ${aiColor === WHITE ? 'selected' : ''}`}
+              onClick={() => setAiColor(WHITE)}
+            >
+              <EntityUI piece={ {color:'w', type:'q'}} />
+              <span className="difficulty-desc">Play as white</span>
+            </button>
+          </div>
+        </div>
+        <div className="ai-config-section">
+          <h3>Difficulty</h3>
           <div className="difficulty-options">
             <button
               className={`difficulty-btn ${aiDifficulty === 'easy' ? 'selected' : ''}`}
@@ -56,7 +77,7 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
         </div>
 
         <div className="ai-config-section">
-          <h3>AI Personality</h3>
+          <h3 ><i class="ai-thinking" >Personality</i></h3>
           <div className="personality-toggle">
             <label className="toggle-label">
               <input

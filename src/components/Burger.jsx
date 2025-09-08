@@ -15,6 +15,9 @@ const Burger = () => {
             {isMenuOpen && (
                 <div className="menu-dropdown">
                     <ThemeSelector />
+                    <button className="play-again" onClick={() => window.location.href = '/'}>
+                        HOME
+                    </button>
                 </div>
             )}
         </>);

@@ -1,24 +1,20 @@
 import { useBoardState } from './hooks/useBoardState';
 import { BoardRow } from './components/Board/BoardRow';
 
-export function Board({ onMove, gameStatus, lastMove, referee, onPromotion}) {
-  const currentPlayer = referee.getCurrentPlayer();
-  
+export function Board({ onMove, gameStatus, lastMove, onPromotion}) {
   const { 
     localState, 
     handleSquareClick, 
     handleMouseEnter, 
     handleMouseLeave 
-  } = useBoardState(referee, onMove, onPromotion);
+  } = useBoardState(onMove, onPromotion);
 
   return (
         <BoardRow
-          referee={referee}
-          currentPlayer={currentPlayer}
           lastMove={lastMove}
           localState={localState}
           onClick={(i) => handleSquareClick(i, gameStatus)}
-          onMouseEnter={(i) => handleMouseEnter(i, gameStatus, referee.getCurrentBoard(), currentPlayer)}
+          onMouseEnter={(i) => handleMouseEnter(i)}
           onMouseLeave={handleMouseLeave}
         />
   );
