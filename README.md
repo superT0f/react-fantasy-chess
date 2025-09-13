@@ -1,12 +1,14 @@
 # Fantasy Chess - React Implementation
 
-![Fantasy Chess Screenshot](./screens/screenshot-2025-08-15.png)
+![Fantasy Chess Screenshot](./screens/screenshot-2025-09-13.png)
 
 A modern chess game implementation built with React, featuring classic chess rules with visual enhancements.
 
 ## Features
 
 - Classic chess rules implementation
+- 2 players local or online
+- AI versus
 - Interactive board with move highlighting
 - Move history with PGN notation
 - Responsive design
@@ -18,11 +20,14 @@ A modern chess game implementation built with React, featuring classic chess rul
 ├── src/
 │ ├── assets/               # Game assets
 │ ├── components/           # React jsx
-│ ├── logic/                # Game logic
-│ │ ├── BaseEntity.js       # Base chess class
-│ │ ├── Entity.js           # factory + utilities
-│ │ ├── pieces/             # Individual piece implementations
-│ │ ├── Pawn.js             # Pawn implementation
+│ ├── hooks/
+│ │ ├── useBoardState.js    # handle board actions
+│ │ ├── useChessTimer.js    # timer stuff
+│ ├── logic/                # chess logic
+│ │ ├── ChessEngine.js      # Engine based on chess.js
+│ │ ├── AIController.js     # AI interaction
+│ │ ├── ChessAI.js          # alpha/beta, agressive mode, 3 level
+│ │ ├── PuzzleGame.js       # Puzzle implementation (WIP)
 │ │ └── PgnNotation.js      # Move notation handling
 │ ├── Board.js              # Chess board component
 │ ├── Game.js               # Main game logic component
@@ -31,7 +36,7 @@ A modern chess game implementation built with React, featuring classic chess rul
 │ └── index.js              # entry point
 ├── Makefile                # Build automation
 ├── package.json            # dependencies
-└── README.md # This file
+└── README.md               # This file
 ```
 
 
@@ -41,8 +46,6 @@ A modern chess game implementation built with React, featuring classic chess rul
 
 - **Board.js**: Handles the chess board rendering and move validation
 - **Game.js**: Manages game state and history
-- **Entity.js**: Factory for creating chess pieces with proper movement rules
-- **PgnNotation.js**: Converts moves to standard chess notation
 - **styles.css**: Custom styling for the chess interface
 
 ## Installation

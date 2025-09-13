@@ -1,6 +1,6 @@
 {
   "name": "fantaisy-chess",
-  "version": "0.0.54",
+  "version": "0.0.79",
   "main": "/src/index.js",
   "homepage": "./",
   "scripts": {
