@@ -85,19 +85,16 @@ ingest:
 	gitingest . -e build -e production -e node_modules -e .git -e .vscode -e logs -e src/.env
 	@echo "$(GREEN)✓ Content ingested$(NC)"
 	@ls -lh digest.txt
-
 ingest-light:
 	@echo "$(YELLOW)📥 Ingesting content without assets...$(NC)"
 	gitingest ./src/ -e assets
 	@echo "$(GREEN)✓ Content ingested$(NC)"
 	ls -lh digest.txt
-
 check-prod-link:
 	@echo "$(YELLOW)🔍 Checking production link...$(NC)"
 	@grep "Fantasy Chess" ./production/play/index.html \
 		&& echo "$(GREEN)✓ OK - Valid production sources$(NC)" \
 		|| echo "$(RED)❌ Not a valid production sources$(NC)"
-
 push: check-prod-link
 	@echo "$(YELLOW)⬆️ Pushing content : $(NC)"
 	@du -hs ./build
@@ -105,6 +102,10 @@ push: check-prod-link
 	@time rsync -avz --no-owner --no-group ./build/* ./production/play/ \
 		&& echo "$(GREEN)✓ Pushed to Gandi$(NC)" \
 		|| echo "$(RED)❌ Failed to push to Gandi$(NC)"
+sync-github:
+	@echo "$(YELLOW)🔄 Syncing GitHub repository...$(NC)"
+	@ git push github main:main-github
+	@echo "$(GREEN)✓ GitHub repository synced$(NC)"
 
 .PHONY: help clean prod dev test bump search mount umount ingest check-prod-link push
 .DEFAULT_GOAL := help
