@@ -6,38 +6,38 @@ NC := \033[0m
 
 help:
 	@echo "Usage :"
-	@echo "  make clean|prod|dev|bump|search"
+	@echo "  make clean|prod|dev|bump|search|mount|umount|ingest|ingest-light|php-serve|push"
 	@echo ""
 	@echo "make clean			clean public and build folders"
 	@echo "make prod			build for production env"
+	@echo "make push			push content to Gandi (after checking)"
 	@echo "make dev				serve for dev env"
 	@echo "make test			run tests"
 	@echo "make bump			update version in package.json based on git revision"
 	@echo "make search GREP_ME	search for GREP_ME in ./src/ directory (grep -rin)"
+	@echo "                     (e.g., make search GREP_ME=Chess)"
 	@echo "make mount			mount Gandi to ./production"
 	@echo "make umount			unmount Gandi from ./production"
 	@echo "make ingest			ingest content from git to build folder"
-	@echo "make push			push content to Gandi (after checking)"
+	@echo "make ingest-light	ingest content from git to build folder without assets"
+	@echo "make php-serve		serve PHP backend for production preview"
+
 
 clean:
 	@echo "$(YELLOW)🧹 Cleaning build directory...$(NC)"
 	rm -Rf build/*
 	@echo "$(GREEN)✓ Clean completed$(NC)"
-
 prod: clean
 	@echo "$(YELLOW)🏗️  Building for production...$(NC)"
 	npm run build
 	@echo "$(GREEN)✓ Production build completed$(NC)"
-
 dev:
 	@echo "$(YELLOW)🚀 Starting development server...$(NC)"
 	npm run start
 	@echo "$(GREEN)Happy coding!$(NC)"
-
 test:
 	@echo "$(YELLOW)🧪 Running tests...$(NC)"
 	npm run test
-
 bump:
 	@echo "$(YELLOW)🔄 Bumping version...$(NC)"
 	@git rev-list --count HEAD > .revision
@@ -47,8 +47,6 @@ bump:
 	NEW_VERSION="$$MAJOR_MINOR.$$REVISION"; \
 	npm --no-git-tag-version version $$NEW_VERSION > /dev/null; \
 	echo "$(GREEN)✓ Version updated to $$NEW_VERSION$(NC)"
-
-# Search feature - the main addition you requested
 search:
 ifndef GREP_ME
 	@echo "$(RED)❌ Error: Please specify a search term$(NC)"
@@ -58,7 +56,14 @@ else
 	@echo "$(YELLOW)🔍 Searching for '$(GREP_ME)' in ./src/...$(NC)"
 	@grep --color=auto -rin "$(GREP_ME)" ./src/ || echo "$(YELLOW)No results found for '$(GREP_ME)'$(NC)"
 endif
+php-serve:
+	@echo "$(YELLOW)🚀 Starting PHP server for production preview...$(NC)"
+	@php -S localhost:4242 -t ./public/api/ >> logs/php.log 2>&1 &
+	@sleep 1
 
+	@echo "$(GREEN)✓ PHP server started at http://localhost:4242$(NC)"
+	@echo "$(YELLOW)You can stop it by running 'pkill -f ''php -S localhost:4242''$(NC)"
+	@echo "$(GREEN)Happy testing!$(NC)"
 mount:
 	@echo "$(YELLOW)⛰️ Mounting Gandi to ./production...$(NC)"
 	@mkdir ./production || (echo "$(YELLOW)./production already exists$(NC)" ; exit 1)
@@ -71,14 +76,13 @@ mount:
 	./production -o password_stdin && \
 	echo "$(GREEN)✓ Gandi mounted to ./production$(NC)" || \
 	echo "$(RED)❌ Failed to mount Gandi$(NC)"
-
 umount:
 	@echo "$(YELLOW)⬇️ Unmounting Gandi...$(NC)"
 	umount ./production && echo "$(GREEN)✓ Gandi unmounted$(NC)" || echo "$(YELLOW)⚠️  Failed to unmount Gandi (maybe already unmounted?)$(NC)"
 	@rmdir ./production 2>/dev/null || true
 ingest:
 	@echo "$(YELLOW)📥 Ingesting content...$(NC)"
-	gitingest ./src/
+	gitingest . -e build -e production -e node_modules -e .git -e .vscode -e logs -e src/.env
 	@echo "$(GREEN)✓ Content ingested$(NC)"
 	@ls -lh digest.txt
 

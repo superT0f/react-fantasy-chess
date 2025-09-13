@@ -54,7 +54,10 @@ export function useBoardState(onMove, onPromotion) {
 
       // Regular move attempt
       try {
-        const move = chess.move({ from: fromSquare, to: toSquare });
+
+        const move = chessEngine.move({ from: fromSquare, to: toSquare });
+        // chess.move({ from: fromSquare, to: toSquare });
+
         setLocalState({
           selectedSquare: null,
           validMoves: [],

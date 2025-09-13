@@ -1188,7 +1188,77 @@ body {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
 }
+.join-form .back-btn,
+.join-form .start-btn {
+  padding: 0.5rem 1.3rem;
+  margin-left: 5px;
+}
+.room-input{
+  width: 95%;
+  padding: .5rem;
+  margin: 1.2rem 0 1.2rem 0.4rem;
+  border-radius: 5px;
+  border: 1px solid #666;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e6e0e0;
+  font-size: 1rem;
+}
+.online-info  {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px double #666;
+  color: #ccc;
 
+  border-radius: 3px;
+  cursor: pointer;
+  width: 95%;
+
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.online-info .share-url {
+  background-color: #ccc;
+  color: #000;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  
+  width: 40%;
+}
+
+#copybtn.copied{
+  background-color: #4caf50;
+  transition: all 0.3s ease;
+}
+#copybtn.copied::before{
+  content: "✔";
+  color :#4caf50;
+  font-weight: bold;
+}
+
+.online-info .share-btn {
+  background: linear-gradient(to right, #d4af37, #f9e076);
+  border: none;
+  padding: 0.1rem 0.8rem;
+  border-radius: 5px;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.online-lobby {
+  padding: 3rem;
+  margin: 5rem auto;
+  text-align: left;
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 15px;
+  border: 1px solid #666;
+  background: rgba(0, 0, 0, 0.863);
+  color: #d4af37;
+} 
 /* Responsive Design */
 @media (max-width: 768px) {
   .mode-selection {

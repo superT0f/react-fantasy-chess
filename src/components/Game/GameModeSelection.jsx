@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { PuzzleSolver } from './PuzzleSolver';
 import { BLACK, WHITE } from 'chess.js';
 import EntityUI from '../Board/EntityUI';
+import { OnlineLobby } from './OnlineLobby';
 
-export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
+
+export function GameModeSelection({ onStartNewGame, onStartPuzzle, joinOnlineGame,
+   createOnlineGame }) {
   const [selectedMode, setSelectedMode] = useState(null);
   const [aiDifficulty, setAiDifficulty] = useState('easy');
   const [isAggressive, setIsAggressive] = useState(true);
@@ -35,14 +38,14 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
               className={`difficulty-btn ai-color-picker ${aiColor === BLACK ? 'selected' : ''}`}
               onClick={() => setAiColor(BLACK)}
             >
-              <EntityUI piece={ {color:'b', type:'p'}} />
+              <EntityUI piece={{ color: 'b', type: 'p' }} />
               <span className="difficulty-desc">Play as black</span>
             </button>
             <button
               className={`difficulty-btn ai-color-picker ${aiColor === WHITE ? 'selected' : ''}`}
               onClick={() => setAiColor(WHITE)}
             >
-              <EntityUI piece={ {color:'w', type:'q'}} />
+              <EntityUI piece={{ color: 'w', type: 'q' }} />
               <span className="difficulty-desc">Play as white</span>
             </button>
           </div>
@@ -111,17 +114,37 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
       </div>
     );
   }
+  if (selectedMode === 'lobby') {
+    return (
+      <OnlineLobby
+        onJoin={joinOnlineGame}
+        onCreate={createOnlineGame}
+        onExit={backToModeSelection}
+      />
+    );
+  }
+
+  
 
   return (
     <div className="mode-selection">
       <h2>Select Game Mode</h2>
       <div className="mode-options">
+
+        <button
+          className="mode-btn online-mode"
+          onClick={() => setSelectedMode('lobby')}
+        >
+          <span className="mode-icon">🌐 <span className="mode-title">Online Play</span></span>
+          <span className="mode-desc">Play against someone online</span>
+        </button>
+
         <button
           className="mode-btn ai-mode"
           onClick={() => handleModeSelect('ai')}
         >
           <span className="mode-icon">🤖 <span className="mode-title">Play vs AI</span></span>
-          
+
           <span className="mode-desc">Challenge computer opponent</span>
         </button>
         <button
@@ -129,14 +152,14 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle }) {
           onClick={onStartPuzzle}
         >
           <span className="mode-icon">🧩 <span className="mode-title">Puzzles</span> </span>
-          
+
           <span className="mode-desc">Challenge yourself 🙃</span>
         </button><button
           className="mode-btn pvp-mode"
           onClick={() => handleModeSelect('pvp')}
         >
           <span className="mode-icon">👥 <span className="mode-title">Two Players</span></span>
-          
+
           <span className="mode-desc">Play with a friend locally</span>
         </button>
       </div>
