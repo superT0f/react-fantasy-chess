@@ -1,22 +1,28 @@
 import { useState, useEffect } from 'react';
 import EntityUI from '../Board/EntityUI';
-import { Piece } from 'chess.js';
-export function PromotionModal({ color, onSelect, onClose }) {
+import { Piece, Color } from 'chess.js';
+
+
+
+interface PromotionModalProps {
+  color: Color;
+  onSelect: (piece: Piece) => void;
+  onClose: () => void;
+}
+
+export function PromotionModal({ color, onSelect, onClose }: PromotionModalProps) {
   const [isVisible, setIsVisible] = useState(false);
-  /**
-   * @type {Piece[]}
-   */
-  const promotionPieces = [
-    {type : 'q', color : color},
-    {type : 'r', color : color},
-    {type : 'b', color : color},
-    {type : 'n', color : color}];
+  const promotionPieces :Piece[] = [
+    { type: 'q', color: color },
+    { type: 'r', color: color },
+    { type: 'b', color: color },
+    { type: 'n', color: color }];
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const handleSelection = (piece) => {
+  const handleSelection = (piece: Piece) => {
     onSelect(piece);
     setIsVisible(false);
     setTimeout(onClose, 300);
@@ -35,7 +41,7 @@ export function PromotionModal({ color, onSelect, onClose }) {
 
   return (
     <div className="promotion-modal-overlay" onClick={onClose}>
-      <div 
+      <div
         className="promotion-modal"
         style={getSquarePosition()}
         onClick={(e) => e.stopPropagation()}
@@ -44,7 +50,7 @@ export function PromotionModal({ color, onSelect, onClose }) {
         <div className="promotion-options">
           {promotionPieces.map(piece => (
             <button
-              key={piece}
+              key={`${piece.type}-${piece.color}`}
               className="promotion-option"
               onClick={() => handleSelection(piece)}
             >

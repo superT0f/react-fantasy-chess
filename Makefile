@@ -12,6 +12,8 @@ help:
 	@echo "make prod			build for production env"
 	@echo "make push			push content to Gandi (after checking)"
 	@echo "make dev				serve for dev env"
+	@echo "make sync-github		sync main branch to GitHub repository"
+	@echo "make type-check		run TypeScript type check"
 	@echo "make test			run tests"
 	@echo "make bump			update version in package.json based on git revision"
 	@echo "make search GREP_ME	search for GREP_ME in ./src/ directory (grep -rin)"
@@ -106,6 +108,12 @@ sync-github:
 	@echo "$(YELLOW)🔄 Syncing GitHub repository...$(NC)"
 	@ git push github main:main-github
 	@echo "$(GREEN)✓ GitHub repository synced$(NC)"
+type-check:
+	@echo "$(YELLOW)🔍 Running TypeScript type check...$(NC)"
+	@npm run type-check > ./logs/tsc.log 2>&1 \
+	&& echo "$(GREEN)✓ Type check passed$(NC)" \
+	|| (echo "$(RED)❌ Type check failed. details saved in logs/tsc.log$(NC)")
+	@cat ./logs/tsc.log
 
 .PHONY: help clean prod dev test bump search mount umount ingest check-prod-link push
 .DEFAULT_GOAL := help

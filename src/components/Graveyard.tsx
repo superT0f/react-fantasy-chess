@@ -1,13 +1,36 @@
-export function Graveyard({ captured, player, graveDiff, timeLeft, formatTime, active }) {
-  const eValues = {
-    'p': 1, 'P': 1,
-    'n': 3, 'N': 3,
-    'b': 3, 'B': 3,
-    'r': 5, 'R': 5,
-    'q': 10, 'Q': 10
+import { Color, PieceSymbol } from 'chess.js';
+
+interface GraveyardProps {
+  captured: PieceSymbol[];
+  player: Color;
+  graveDiff: number;
+  timeLeft: { w: number; b: number };
+  formatTime: (seconds: number) => string;
+  active: boolean;
+}
+
+interface PieceCount {
+  [key: string]: number;
+}
+
+interface GroupedPiece {
+  piece: string;
+  count: number;
+  value: number;
+}
+
+export function Graveyard({
+  captured, player, graveDiff,
+  timeLeft, formatTime, active }: GraveyardProps) {
+  const eValues: Record<string, number> = {
+    'p': 1,
+    'n': 3,
+    'b': 3,
+    'r': 5,
+    'q': 10
   };
 
-  const symbols = {
+  const symbols: Record<string, string> = {
     'p': '♟', 'P': '♙',
     'n': '♞', 'N': '♘',
     'b': '♝', 'B': '♗',
@@ -16,17 +39,17 @@ export function Graveyard({ captured, player, graveDiff, timeLeft, formatTime, a
   };
 
   // Count pieces by type
-  const pieceCounts = captured.reduce((counts, piece) => {
+  const pieceCounts = captured.reduce((counts: PieceCount, piece) => {
     counts[piece] = (counts[piece] || 0) + 1;
     return counts;
   }, {});
 
   // Group pieces with counts and sort by value (highest first)
-  const groupedPieces = Object.entries(pieceCounts)
+  const groupedPieces: GroupedPiece[] = Object.entries(pieceCounts)
     .map(([piece, count]) => ({
       piece,
       count,
-      value: eValues[piece] || 0
+      value: eValues[piece.toLowerCase()] || 0
     }))
     .sort((a, b) => b.value - a.value); // Sort by value descending
 
@@ -37,7 +60,7 @@ export function Graveyard({ captured, player, graveDiff, timeLeft, formatTime, a
       <div className="graveyard-header">
         <h3>{player} : </h3>
         <div className={`timer ${player} ${active ? 'active' : ''}`}>
-        {formatTime(timeLeft[player])}
+          {formatTime(timeLeft[player])}
         </div>
         {graveDiff > 0 && (
           <div className="graveDiff">+{graveDiff}</div>

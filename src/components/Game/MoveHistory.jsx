@@ -1,5 +1,5 @@
 // src/components/Game/MoveHistory.jsx
-export function MoveHistory({ history, onJumpToMove }) {
+export function MoveHistory({ history }) {
   const moves = [];
   
   if (history.length >= 1) {
@@ -17,7 +17,7 @@ export function MoveHistory({ history, onJumpToMove }) {
 
       moves.push(
         <li key={i}>
-          <button className="move" onClick={() => onJumpToMove(i)}>
+          <button className="move">
             {description}
           </button>
         </li>

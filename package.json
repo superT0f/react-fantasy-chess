@@ -1,17 +1,17 @@
 {
   "name": "fantaisy-chess",
-  "version": "0.0.79",
+  "version": "1.0.81",
   "main": "/src/index.js",
   "homepage": "./",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
-    "chess.ts": "^0.16.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "^5.0.0"
@@ -29,6 +29,12 @@
     ]
   },
   "devDependencies": {
-    "node-fs": "^0.1.7"
+    "@types/chess.js": "^0.13.7",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.3.3",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "node-fs": "^0.1.7",
+    "typescript": "^5.9.2"
   }
 }

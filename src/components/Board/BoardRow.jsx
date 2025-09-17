@@ -47,7 +47,7 @@ export function BoardRow({
                 isKingInCheck={isKingInCheck}
                 isCheckmate={isCheckmate}
                 isAnimated={chess.history[-1] === square}
-                isOpponentPiece={localState.isOpponentPiece}
+                isOpponentPiece={piece.color !== chess.turn()}
                 isLastMoveFrom={isLastMoveFrom}
                 isLastMoveTo={isLastMoveTo}
               />

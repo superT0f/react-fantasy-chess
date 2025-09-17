@@ -8,28 +8,29 @@ import { useChessTimer } from './hooks/useChessTimer';
 import { useAIController } from './logic/AIController';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Graveyard } from './components/Graveyard';
-import Log from './Log';
+import { Logger  } from './utils/Logger';
 import { PuzzleGameComponent } from './components/Game/PuzzleGame';
 import PuzzleGame from './logic/PuzzleGame';
 import chessEngine from './logic/chessEngine';
-import { WHITE, Chess, BLACK, Move } from 'chess.js';
+import { WHITE, Chess, BLACK, Move, Piece, PieceSymbol, Square } from 'chess.js';
 import config from './config';
+import { LastMove } from './types/chess';
 
 
 export default function Game() {
   const urlParams = new URLSearchParams(window.location.search);
   const [roomId, setRoomId] = useState(urlParams.get('room'));
-  /** @type {Chess} */
-  const chess = chessEngine.getChess();
+  const chess:Chess = chessEngine.getChess();
   const { theme } = useTheme();
-  const [gameMode, setGameMode] = useState(null);
-  const [aiDifficulty, setAiDifficulty] = useState('easy');
+  const [gameMode, setGameMode] = useState<'pvp' | 'ai' | 'online' | null>(null);
+  const [aiDifficulty, setAiDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
   const [aiColor, setAiColor] = useState(BLACK);
   const [gameStatus, setGameStatus] = useState('playing');
-  const [winner, setWinner] = useState(null);
-  const [lastMove, setLastMove] = useState(null);
+  const [winner, setWinner] = useState<"BLACK" | "WHITE" | null>(null);
+
+  const [lastMove, setLastMove] = useState<LastMove | null>(null);
   const [isAiAggressive, setIsAiAggressive] = useState(true);
-  const [promotionSquares, setPromotionSquares] = useState(null);
+  const [promotionSquares, setPromotionSquares] = useState<{ from: Square; to: Square } | null>(null);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
 
   const [puzzleMode, setPuzzleMode] = useState(false);
@@ -39,7 +40,6 @@ export default function Game() {
     gameMode,
     aiDifficulty,
     isAiAggressive,
-    chessEngine,
     gameStatus
   });
 
@@ -52,11 +52,10 @@ export default function Game() {
     resetTimer
   } = useChessTimer(600);
 
-  const [capturedByWhite, setCapturedByWhite] = useState([]);
-  const [capturedByBlack, setCapturedByBlack] = useState([]);
+  const [capturedByWhite, setCapturedByWhite] = useState<PieceSymbol[]>([]);
+  const [capturedByBlack, setCapturedByBlack] = useState<PieceSymbol[]>([]);
   const updateCaptured = (
-    /** @type PieceSymbol */
-    piece_type,
+    piece_type : PieceSymbol,
   ) => {
     if (!piece_type) return;
     if (chess.turn() === WHITE) {
@@ -74,8 +73,23 @@ export default function Game() {
       'q': 10, 'Q': 10
     };
 
-    const whiteScore = capturedByWhite.reduce((sum, piece) => sum + (eValues[piece] || 0), 0);
-    const blackScore = capturedByBlack.reduce((sum, piece) => sum + (eValues[piece] || 0), 0);
+    const validPieceSymbols = ['p', 'P', 'n', 'N', 'b', 'B', 'r', 'R', 'q', 'Q'] as const;
+    type ValidPieceSymbol = typeof validPieceSymbols[number];
+
+    const whiteScore = capturedByWhite.reduce(
+      (sum, piece) =>
+        validPieceSymbols.includes(piece as ValidPieceSymbol)
+          ? sum + eValues[piece as ValidPieceSymbol]
+          : sum,
+      0
+    );
+    const blackScore = capturedByBlack.reduce(
+      (sum, piece) =>
+        validPieceSymbols.includes(piece as ValidPieceSymbol)
+          ? sum + eValues[piece as ValidPieceSymbol]
+          : sum,
+      0
+    );
 
     return {
       white: whiteScore - blackScore,
@@ -83,12 +97,6 @@ export default function Game() {
     };
   };
 
-
-
-
-
-
-  // Add this function to handle online game creation
   const createOnlineGame = () => {
     const newRoomId = generateRoomId();
     // Send initial game state to the server
@@ -114,10 +122,10 @@ export default function Game() {
     joinOnlineGame(newRoomId);
   };
 
-  // Add this function to handle joining an online game
-  const joinOnlineGame = (roomId) => {
+  
+  const joinOnlineGame = (roomId:string) => {
     roomId = roomId.toUpperCase();
-    // Update URL with room ID
+    // Update Browser URL with room ID
     window.history.pushState({}, '', `?room=${roomId}`);
     setRoomId(roomId);
     startNewGame('online');
@@ -156,8 +164,8 @@ export default function Game() {
         if (data.history.length > chess.history().length) {
           // It's our turn now
           setGameStatus('playing');
-          const newPlayer = chess.turn() === WHITE ? 'white' : 'black';
-          switchPlayer(newPlayer);
+          const newPlayer = chess.turn();
+          switchPlayer(newPlayer, onTimeout);
         }
       }
 
@@ -171,19 +179,19 @@ export default function Game() {
   }, []);
 
 
-
-
-
-
-
-  async function startNewGame(mode, difficulty = 'easy', aggressive = true, aiColor = BLACK) {
-    Log.debug(`startNewGame =
+  async function startNewGame(
+    mode: 'pvp' | 'ai' | 'online',
+    difficulty: 'easy' | 'medium' | 'hard' = 'easy',
+    aggressive: boolean = true,
+    aiColor: typeof WHITE | typeof BLACK = BLACK
+  ): Promise<void> {
+    Logger.debug(`startNewGame =
         mode         :${mode},
         difficulty   :${difficulty}, 
         aggressive   :${aggressive}, 
         aiColor      :${aiColor}`);
     resetTimer();
-    startTimer('white', onTimeout);
+    startTimer(WHITE, onTimeout);
     setGameMode(mode);
     setGameStatus('playing');
     setWinner(null);
@@ -210,40 +218,50 @@ export default function Game() {
       // Fetch initial game state from server
       if (roomId) {
         const response = await fetch(`${config.apiUrl}?roomId=${roomId}&startNewGame=1`);
-        const data = await response.json();
+        const data: {
+          fen?: string;
+          history?: Move[];
+        } = await response.json();
         // Update game state from server
         if (data.fen && data.fen !== chess.fen()) {
           chess.load(data.fen);
         }
         if (data.history) {
-          chess.history = () => data.history;
+          if (Array.isArray(data.history)) {
+            chess.reset();
+            data.history.forEach((move: any) => {
+              // If move is a string, use it directly; if it's an object, use its SAN or UCI notation
+              if (typeof move === 'string') {
+                chess.move(move);
+              } else if (move.san) {
+                chess.move(move.san);
+              } else if (move.from && move.to) {
+                chess.move({ from: move.from, to: move.to, promotion: move.promotion });
+              }
+            });
+          }
         }
       }
 
-      // Set up polling every 5 seconds to fetch game state
-      const interval = setInterval(fetchOnlineGameState, 5000);
-      setPollInterval(interval);
+      // Set up polling every 1.5 seconds to fetch game state
+      setInterval(fetchOnlineGameState, 1500) as unknown as number;
+      //setPollInterval(interval);
     }
-
-
   }
 
-  const handlePromotion = (from, to) => {
+  const handlePromotion = (from: any, to: any) => {
     setPromotionSquares({ from: from, to: to });
     setShowPromotionModal(true);
   };
 
-  function handleMove(
-    /**
-     * @type {Move} */
-    move) {
+  function handleMove(move: Move) {
     if (puzzleMode) {
       handlePuzzleMove(move);
       return true;
     }
 
     if (gameStatus !== 'playing') {
-      Log.debug('Game not in playing state, ignoring move');
+      Logger.debug('Game not in playing state, ignoring move');
       return false;
     }
 
@@ -252,12 +270,12 @@ export default function Game() {
     }
 
     const lastMoveData = move;
-    const lastMoveNotation = lastMoveData ? lastMoveData.pgn : '';
+    const lastMoveNotation = lastMoveData ? lastMoveData.san : '';
 
     setLastMove({
       from: move.from,
       to: move.to,
-      piece: move.promotion || chess.get(move.from),
+      piece: chess.get(move.from) as Piece,
       captured: move.captured,
       notation: lastMoveNotation
     });
@@ -276,7 +294,7 @@ export default function Game() {
     }
 
     // timer switch
-    const newPlayer = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
+    const newPlayer = (chess.turn() === WHITE) ? BLACK : WHITE;
     switchPlayer(newPlayer, onTimeout);
 
     // trigger ai move after player
@@ -293,47 +311,50 @@ export default function Game() {
   }
 
 
-  const handlePuzzleMove = (move) => {
-    Log.debug(`handlePuzzleMove`);
-    Log.debug(move);
-    const result = puzzleGame.validateMove(move);
-
-    if (result.isValid) {
-      // Process the move normally
-      handleMove(chess.move({ from: move.from, to: move.to, promotion: move.promotion }));
-
-      setFeedback(result.feedback);
-      if (result.isComplete) {
-        // Puzzle completed, you might want to show a celebration
-        Log.debug('Puzzle completed!');
+  const handlePuzzleMove = (move: { from: any; to: any; promotion?: any; }) => {
+  
+      const result = puzzleGame.validateMove(move);
+  
+      if (result.isValid) {
+        // Process the move normally
+        handleMove(chess.move({ from: move.from, to: move.to, promotion: move.promotion }));
+  
+        setFeedback(result.feedback);
+        if (result.isComplete) {
+          // Puzzle completed, you might want to show a celebration
+          Logger.debug('Puzzle completed!');
+        }
+      } else {
+        Logger.debug('handlePuzzleMove move not valid!');
       }
-    } else {
-      Log.debug('handlePuzzleMove move not valid!');
-      Log.debug(move);
-    }
-  };
+    };
 
 
   const graveDiff = computeGraveDiff();
 
+  const timerRef = useRef<number | null>(null);
+
   const onTimeout = () => {
     // side to move is loosing by time
-    const winner = (chess.turn === WHITE) ? 'BLACK' : 'WHITE';
+    const winner = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
     setGameStatus('timeout');
     setWinner(winner);
-    clearInterval(timerRef.current);
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current as number);
+    }
   };
 
-  const timerRef = useRef(null);
-  const [pollInterval, setPollInterval] = useState(null);
+  // const [pollInterval, setPollInterval] =useState<number | null>(null);
   useEffect(() => {
     if (gameStatus !== 'playing') return;
 
-    const isTimeout = timeLeft.white <= 0 || timeLeft.black <= 0;
+    const isTimeout = timeLeft[WHITE] <= 0 || timeLeft[BLACK] <= 0;
     if (isTimeout) {
       setGameStatus('timeout');
-      setWinner(timeLeft.white <= 0 ? 'BLACK' : 'WHITE');
-      clearInterval(timerRef.current);
+      setWinner(timeLeft[WHITE] <= 0 ? 'BLACK' : 'WHITE');
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+      }
     }
 
 
@@ -385,16 +406,17 @@ export default function Game() {
 
             {showPromotionModal && (
               <PromotionModal
-                square={promotionSquares.to}
                 color={chess.turn()}
-                onSelect={(piece) => {
-                  handleMove(chessEngine.move(
-                    {
-                      from: promotionSquares.from,
-                      to: promotionSquares.to,
-                      promotion: piece?.type
-                    }
-                  ));
+                onSelect={(piece: { type: any; }) => {
+                  if (promotionSquares) {
+                    handleMove(chessEngine.move(
+                      {
+                        from: promotionSquares.from,
+                        to: promotionSquares.to,
+                        promotion: piece?.type
+                      }
+                    ));
+                  }
                   setShowPromotionModal(false);
                   setPromotionSquares(null);
                 }}
@@ -416,8 +438,9 @@ export default function Game() {
                   <button className="share-btn" id="copybtn" onClick={() => {
                     
                     navigator.clipboard.writeText(shareUrl)
-                    if (!document.getElementById('copybtn').className.includes('copied'))
-                      document.getElementById('copybtn').className += ' copied';
+                    const copyBtn = document.getElementById('copybtn');
+                    if (copyBtn && !copyBtn.className.includes('copied'))
+                      copyBtn.className += ' copied';
                   }
                   }>
                     Copy
@@ -432,19 +455,19 @@ export default function Game() {
                 <div className="graveyard-contant">
                   <Graveyard
                     captured={capturedByBlack}
-                    player="black"
+                    player={BLACK}
                     timeLeft={timeLeft}
                     formatTime={formatTime}
                     graveDiff={graveDiff.black > 0 ? graveDiff.black : 0}
-                    active={!chess.isGameOver && chess.turn() === 'black'}
+                    active={!chess.isGameOver && chess.turn() === BLACK}
                   />
                   <Graveyard
                     captured={capturedByWhite}
-                    player="white"
+                    player={WHITE}
                     timeLeft={timeLeft}
                     formatTime={formatTime}
                     graveDiff={graveDiff.white > 0 ? graveDiff.white : 0}
-                    active={!chess.isGameOver && chess.turn() === 'white'}
+                    active={!chess.isGameOver && chess.turn() === WHITE}
                   />
                 </div>
                 <div className="game-board">

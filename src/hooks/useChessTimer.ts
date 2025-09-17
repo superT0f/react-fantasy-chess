@@ -1,27 +1,29 @@
+import { Color } from 'chess.js';
 import { useState, useRef, useCallback } from 'react';
 
-export function useChessTimer(initialTime = 600) {
-  const [timeLeft, setTimeLeft] = useState({ white: initialTime, black: initialTime });
-  const [currentPlayer, setCurrentPlayer] = useState(null);
-  const timerRef = useRef(null);
+export function useChessTimer(initialTime:number = 600) {
+  const [timeLeft, setTimeLeft] = useState({ 'w': initialTime, 'b': initialTime });
+  const [currentPlayer, setCurrentPlayer] = useState<Color|null>(null);
+  const timerRef = useRef<number>(undefined);
 
-  const startTimer = useCallback((player, onTimeout) => {
+  const startTimer = useCallback((player:Color, onTimeout:any) => {
     clearInterval(timerRef.current);
     setCurrentPlayer(player);
 
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
+        if (!currentPlayer) return prev;
         const newTime = { ...prev };
-        newTime[player] = Math.max(0, newTime[player] - 1);
+        newTime[currentPlayer] = Math.max(0, newTime[currentPlayer] - 1);
 
-        if (newTime[player] <= 0) {
+        if (newTime[currentPlayer] <= 0) {
           clearInterval(timerRef.current);
-          onTimeout?.(player);
+          onTimeout?.(currentPlayer);
         }
 
         return newTime;
       });
-    }, 1000);
+    }, 1000) as unknown as number;
   }, []);
 
 
@@ -30,18 +32,18 @@ export function useChessTimer(initialTime = 600) {
     setCurrentPlayer(null);
   }
 
-  const switchPlayer = useCallback((newPlayer, onTimeout) => {
+  const switchPlayer = useCallback((newPlayer: Color, onTimeout: Function) => {
     startTimer(newPlayer, onTimeout);
   }, [startTimer]);
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds:number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   const resetTimer = () => {
-    setTimeLeft({ white: initialTime, black: initialTime });
+    setTimeLeft({ 'w': initialTime, 'b': initialTime });
     setCurrentPlayer(null);
     clearInterval(timerRef.current);
   };

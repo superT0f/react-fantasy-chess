@@ -1,12 +1,27 @@
-import { Chess, Move, WHITE, BLACK } from 'chess.js';
-import Log from '../Log';
+import { Chess, WHITE, BLACK } from 'chess.js';
+import { Logger } from '../utils/Logger';
 import config from '../config';
+import { Move } from '../types/chess';
+
+interface GameState {
+    fen: string;
+    history: string[];
+    players?: string[];
+}
+
+interface SendGameStateResponse {
+    fen?: string;
+    history?: string[];
+}
+
 class ChessEngine {
+    private chess!: Chess;
     _mode = 'pvp'; // Default mode
+    static instance: ChessEngine;
     /**
      * @param {string} value
      */
-    set mode(value) {
+    set mode(value: string) {
         this._mode = value;
     }
     constructor() {
@@ -16,12 +31,14 @@ class ChessEngine {
         }
         return ChessEngine.instance;
     }
-    sendGameState = async (gameState, move) => {
+
+
+    sendGameState = async (gameState: GameState, move: string): Promise<void> => {
 
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
         try {
-            const data = await fetch(`${config.apiUrl}?roomId=${roomId}&m=${move}&ChessEngine=1`, {
+            const response = await fetch(`${config.apiUrl}?roomId=${roomId}&m=${move}&ChessEngine=1`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,46 +48,43 @@ class ChessEngine {
                     gameState
                 }),
             });
+            const data: SendGameStateResponse = await response.json();
             if (data.fen) {
                 this.chess.load(data.fen);
             }
-            if (data.history) {
-                this.chess.history = () => data.history;
-            }
-            if (data.capturedByWhite) {
-                capturedByWhite = data.capturedByWhite;
-            }
-            if (data.capturedByBlack) {
-                capturedByBlack = data.capturedByBlack;
-            }
+            // if (data.history) {
+            //     this.chess.history = () => data.history!;
+            // }
+            // if (data.capturedByWhite) {
+            //     capturedByWhite = data.capturedByWhite;
+            // }
+            // if (data.capturedByBlack) {
+            //     capturedByBlack = data.capturedByBlack;
+            // }
 
         } catch (error) {
             console.error('Error sending game state:', error);
         }
     }
     getChess() {
-        return this.chess;
+        return this.chess || (this.chess = new Chess());
     }
 
     reset() {
         this.chess.reset();
     }
-    load(fen) {
+    load(fen: string) {
         return this.chess.load(fen);
     }
-    move(
-        /** @type Move */
-        move) {
+    move(move:Move) {
         const moveString = move.from + move.to + (move.promotion ? move.promotion : '');
-        Log.debug('Attempting move:', moveString);
-        Log.debug('mode:', this._mode);
+        Logger.debug('Attempting move:', moveString);
+        Logger.debug('mode:', this._mode);
         const moveResult = this.chess.move(move);
         if (this._mode === 'online') {
             const gameState = {
                 fen: this.chess.fen(),
                 history: this.chess.history(),
-                // capturedByWhite,
-                // capturedByBlack,
                 players: this.chess.turn() === WHITE ? [WHITE, BLACK] : [BLACK, WHITE]
             };
             this.sendGameState(gameState, move.from + move.to + (move.promotion ? move.promotion : ''));
