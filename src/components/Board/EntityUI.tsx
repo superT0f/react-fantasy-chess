@@ -1,10 +1,9 @@
-import { WHITE, Piece } from 'chess.js';
-import React from 'react';
-
-const EntityUI = ({ /**
-                    * @type {Piece | null} */
-                  piece }) => {
-  const theme = localStorage.getItem('chessTheme') || 'classic';
+import { Piece } from 'chess.js';
+interface EntityUIProps {
+  piece: Piece | undefined
+};
+const EntityUI = ({piece}:EntityUIProps) => {
+  const theme = localStorage.getItem('chessTheme') || 'classic-improved';
   if (!piece) return null;
 
   const color = piece.color;
@@ -24,7 +23,12 @@ const EntityUI = ({ /**
     return <img src={image} alt={imageName} className="chess-entity" />;
   } catch (e) {
     console.error(`Image not found: ${imageName}.png in theme ${theme}`);
-    return imageName;
+    // Return a fallback JSX element instead of a string
+    return (
+      <span className="chess-entity chess-entity--missing">
+        {imageName.split('_').map(word => word.charAt(0).toUpperCase()).join('')}
+      </span>
+    );
   }
 };
 

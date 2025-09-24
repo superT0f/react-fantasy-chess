@@ -33,7 +33,7 @@ prod: clean
 	@echo "$(YELLOW)🏗️  Building for production...$(NC)"
 	npm run build
 	@echo "$(YELLOW)📂 Copying PHP API files...$(NC)"
-	cp -r src/php/api build/api
+	cp -r src/backend/api build/api
 	@echo "$(GREEN)✓ Production build completed with PHP API$(NC)"
 dev:
 	@echo "$(YELLOW)🚀 Starting development server...$(NC)"
