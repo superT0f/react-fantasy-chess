@@ -34,17 +34,20 @@ class ChessEngine {
 
 
     sendGameState = async (gameState: GameState, move: string): Promise<void> => {
-
+        // TODO : get userID from backend
+        const userId = 1;
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
         try {
-            const response = await fetch(`${config.apiUrl}?roomId=${roomId}&m=${move}&ChessEngine=1`, {
+            const response = await fetch(`${config.apiUrl}/game/${roomId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    userId,
                     roomId,
+                    move,
                     gameState
                 }),
             });

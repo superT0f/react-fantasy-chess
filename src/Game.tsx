@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Board } from './Board';
 import { PromotionModal } from './components/Game/PromotionModal'
 import { VictoryMessage } from './components/Game/VictoryMessage';
@@ -8,19 +8,37 @@ import { useChessTimer } from './hooks/useChessTimer';
 import { useAIController } from './logic/AIController';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Graveyard } from './components/Graveyard';
-import { Logger  } from './utils/Logger';
+import { Logger } from './utils/Logger';
 import { PuzzleGameComponent } from './components/Game/PuzzleGame';
 import PuzzleGame from './logic/PuzzleGame';
 import chessEngine from './logic/chessEngine';
 import { WHITE, Chess, BLACK, Move, Piece, PieceSymbol, Square } from 'chess.js';
 import config from './config';
 import { LastMove } from './types/chess';
+import { AuthModal } from './components/Auth/AuthModal';
+import { UserData } from './types/user';
 
+import './assets/auth.css';
+import Burger from './components/Burger';
+import UserMenu from './components/UserMenu';
+import { Cookie } from './utils/Cookie';
 
 export default function Game() {
   const urlParams = new URLSearchParams(window.location.search);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+
+  const handleAuthSuccess = (user: UserData) => {
+    Logger.debug('Authenticated user:', user);
+    setUser(user);
+    setShowAuthModal(false);
+
+    // Store user in localStorage as backup
+    localStorage.setItem('user', JSON.stringify(user));
+  };
   const [roomId, setRoomId] = useState(urlParams.get('room'));
-  const chess:Chess = chessEngine.getChess();
+  const chess: Chess = chessEngine.getChess();
   const { theme } = useTheme();
   const [gameMode, setGameMode] = useState<'pvp' | 'ai' | 'online' | null>(null);
   const [aiDifficulty, setAiDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
@@ -42,20 +60,82 @@ export default function Game() {
     isAiAggressive,
     gameStatus
   });
+  const [userRooms, setUserRooms] = useState<any[]>([]);
+
+  // Add this function to fetch user rooms
+  const fetchUserRooms = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`${config.apiUrl}/user/rooms/${user.id}`,
+        { credentials: 'include' }
+      );
+      const data = await response.json();
+      setUserRooms(data);
+    } catch (error) {
+      console.error('Error fetching user rooms:', error);
+    }
+  };
+
+  useEffect(() => {
+    const validateSession = async () => {
+      try {
+        const response = await fetch(`${config.apiUrl}/validate_session`, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+
+        if (data.valid && data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+          setShowAuthModal(true);
+        }
+      } catch (error) {
+        console.error('Session validation failed:', error);
+        setUser(null);
+      }
+    };
+
+    validateSession();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserRooms();
+    }
+  }, [user]);
+
+  // Check for stored user on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        setUser(user);
+
+        // Validate the stored session with the server
+        // validateSessionWithServer();
+      } catch (error) {
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
 
   const {
     timeLeft,
     startTimer,
-    stoptTimers,
+    stopTimers,
     switchPlayer,
     formatTime,
-    resetTimer
+    resetTimer,
+    currentPlayer: timerPlayer // Rename to avoid conflict
   } = useChessTimer(600);
 
   const [capturedByWhite, setCapturedByWhite] = useState<PieceSymbol[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<PieceSymbol[]>([]);
   const updateCaptured = (
-    piece_type : PieceSymbol,
+    piece_type: PieceSymbol,
   ) => {
     if (!piece_type) return;
     if (chess.turn() === WHITE) {
@@ -106,11 +186,12 @@ export default function Game() {
       history: chess.history()
     };
     try {
-      fetch(`${config.apiUrl}?roomId=${newRoomId}&newgame=1`, {
+      fetch(`${config.apiUrl}/game/${newRoomId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           roomId: newRoomId,
           gameState
@@ -122,8 +203,8 @@ export default function Game() {
     joinOnlineGame(newRoomId);
   };
 
-  
-  const joinOnlineGame = (roomId:string) => {
+
+  const joinOnlineGame = (roomId: string) => {
     roomId = roomId.toUpperCase();
     // Update Browser URL with room ID
     window.history.pushState({}, '', `?room=${roomId}`);
@@ -146,9 +227,14 @@ export default function Game() {
 
   const fetchOnlineGameState = useCallback(async () => {
     try {
+      if (chess.isGameOver()){
+        return;
+      }
       const roomId = (new URLSearchParams(window.location.search)).get('room');
       if (!roomId) return;
-      const response = await fetch(`${config.apiUrl}?roomId=${roomId}&fetchOnlineGameState=1`);
+      const response = await fetch(`${config.apiUrl}/game/${roomId}`,
+        { credentials: 'include', }
+      );
       const data = await response.json();
 
       // Update game state from server
@@ -189,9 +275,13 @@ export default function Game() {
         mode         :${mode},
         difficulty   :${difficulty}, 
         aggressive   :${aggressive}, 
-        aiColor      :${aiColor}`);
+        aiColor      :${aiColor}
+        timerPlayer  :${timerPlayer}`);
+        
+    stopTimers();
     resetTimer();
     startTimer(WHITE, onTimeout);
+    
     setGameMode(mode);
     setGameStatus('playing');
     setWinner(null);
@@ -217,7 +307,9 @@ export default function Game() {
       chessEngine.mode = 'online';
       // Fetch initial game state from server
       if (roomId) {
-        const response = await fetch(`${config.apiUrl}?roomId=${roomId}&startNewGame=1`);
+        const response = await fetch(`${config.apiUrl}/game/${roomId}`,
+          { credentials: 'include', }
+        );
         const data: {
           fen?: string;
           history?: Move[];
@@ -243,8 +335,8 @@ export default function Game() {
         }
       }
 
-      // Set up polling every 1.5 seconds to fetch game state
-      setInterval(fetchOnlineGameState, 1500) as unknown as number;
+      // Set up polling every 3.5 seconds to fetch game state
+      setInterval(fetchOnlineGameState, 3500);
       //setPollInterval(interval);
     }
   }
@@ -269,32 +361,33 @@ export default function Game() {
       updateCaptured(move.captured);
     }
 
-    const lastMoveData = move;
-    const lastMoveNotation = lastMoveData ? lastMoveData.san : '';
+    // const lastMoveData = move;
+    // const lastMoveNotation = lastMoveData ? lastMoveData.san : '';
 
     setLastMove({
       from: move.from,
       to: move.to,
       piece: chess.get(move.from) as Piece,
       captured: move.captured,
-      notation: lastMoveNotation
+      notation: move.san
     });
     if (chess.isCheckmate()) {
       // side to move is checkmated : looser
       const winner = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
-      stoptTimers();
+      stopTimers();
       setWinner(winner);
       setGameStatus('checkmate');
       return true;
     }
     if (chess.isStalemate()) {
-      stoptTimers();
+      stopTimers();
       setGameStatus('stalemate');
       return true;
     }
 
     // timer switch
-    const newPlayer = (chess.turn() === WHITE) ? BLACK : WHITE;
+    // const newPlayer = (chess.turn() === WHITE) ? BLACK : WHITE;
+    const newPlayer = chess.turn();
     switchPlayer(newPlayer, onTimeout);
 
     // trigger ai move after player
@@ -312,66 +405,93 @@ export default function Game() {
 
 
   const handlePuzzleMove = (move: { from: any; to: any; promotion?: any; }) => {
-  
-      const result = puzzleGame.validateMove(move);
-  
-      if (result.isValid) {
-        // Process the move normally
-        handleMove(chess.move({ from: move.from, to: move.to, promotion: move.promotion }));
-  
-        setFeedback(result.feedback);
-        if (result.isComplete) {
-          // Puzzle completed, you might want to show a celebration
-          Logger.debug('Puzzle completed!');
-        }
-      } else {
-        Logger.debug('handlePuzzleMove move not valid!');
+
+    const result = puzzleGame.validateMove(move);
+
+    if (result.isValid) {
+      // Process the move normally
+      handleMove(chess.move({ from: move.from, to: move.to, promotion: move.promotion }));
+
+      setFeedback(result.feedback);
+      if (result.isComplete) {
+        // Puzzle completed, you might want to show a celebration
+        Logger.debug('Puzzle completed!');
       }
-    };
+    } else {
+      Logger.debug('handlePuzzleMove move not valid!');
+    }
+  };
 
 
   const graveDiff = computeGraveDiff();
 
-  const timerRef = useRef<number | null>(null);
+  // const timerRef = useRef<number | null>(null);
 
-  const onTimeout = () => {
-    // side to move is loosing by time
+  const onTimeout = useCallback(() => {
+    if (gameStatus !== 'playing') return;
+
     const winner = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
     setGameStatus('timeout');
     setWinner(winner);
-    if (timerRef.current !== null) {
-      clearInterval(timerRef.current as number);
-    }
-  };
+    stopTimers();
+  }, [chess, gameStatus, stopTimers]);
 
   // const [pollInterval, setPollInterval] =useState<number | null>(null);
-  useEffect(() => {
-    if (gameStatus !== 'playing') return;
+  // useEffect(() => {
+  //   if (gameStatus !== 'playing') return;
 
-    const isTimeout = timeLeft[WHITE] <= 0 || timeLeft[BLACK] <= 0;
-    if (isTimeout) {
-      setGameStatus('timeout');
-      setWinner(timeLeft[WHITE] <= 0 ? 'BLACK' : 'WHITE');
-      if (timerRef.current !== null) {
-        clearInterval(timerRef.current);
-      }
+  //   const isTimeout = timeLeft[WHITE] <= 0 || timeLeft[BLACK] <= 0;
+  //   if (isTimeout) {
+  //     setGameStatus('timeout');
+  //     setWinner(timeLeft[WHITE] <= 0 ? 'BLACK' : 'WHITE');
+  //     if (timerRef.current !== null) {
+  //       clearInterval(timerRef.current);
+  //     }
+  //   }
+
+
+
+
+  // }, [timeLeft, gameStatus]);
+  const handleLogout = async () => {
+    try {
+      await fetch(`${config.apiUrl}/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear all client-side storage
+      setUser(null);
+      localStorage.removeItem('user');
+      Cookie.clearRememberMe();
+      setShowAuthModal(true);
     }
-
-
-
-
-  }, [timeLeft, gameStatus]);
-
-  const shareUrl = `${window.location.origin}?room=${roomId}`;
+  }; const shareUrl = `${window.location.origin}?room=${roomId}`;
 
   return (
     <ThemeProvider>
+      <div className="top-menu-container">
+        {user ? (
+          <UserMenu user={user} onLogout={handleLogout} />
+        ) : (
+          <Burger setShowAuthModal={setShowAuthModal} />
+        )}
+        {showAuthModal && (
+          <AuthModal
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            onAuthSuccess={handleAuthSuccess}
+          />
+        )}
+      </div>
       <div className={`game theme-${localStorage.getItem('chessTheme') || theme}`}>
         {!gameMode && !puzzleMode ? (
           <GameModeSelection
             onStartNewGame={startNewGame}
             onStartPuzzle={() => setPuzzleMode(true)}
-
+            userRooms={userRooms}
             joinOnlineGame={joinOnlineGame}
             createOnlineGame={createOnlineGame}
           />
@@ -436,7 +556,7 @@ export default function Game() {
                 <div >
                   <input className="share-url" type="text" value={shareUrl} readOnly />
                   <button className="share-btn" id="copybtn" onClick={() => {
-                    
+
                     navigator.clipboard.writeText(shareUrl)
                     const copyBtn = document.getElementById('copybtn');
                     if (copyBtn && !copyBtn.className.includes('copied'))

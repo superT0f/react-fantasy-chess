@@ -1,10 +1,24 @@
+import { Piece } from 'chess.js';
 import EntityUI from './EntityUI';
 import PgnNotation from "../../logic/PgnNotation";
 
+interface SquareUIProps {
+  piece: Piece | undefined;
+  squareIndex: number;
+  isSelected: boolean;
+  onSquareClick: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  isValidMove: boolean;
+  isKingInCheck: boolean;
+  isCheckmate: boolean;
+  isOpponentPiece: boolean;
+  isEnPassantTarget?: boolean;
+  isLastMoveFrom: boolean;
+  isLastMoveTo: boolean;
+}
+
 export function SquareUI({
-  /**
- * @type {Piece | null}
- */
   piece,
   squareIndex,
   isSelected,
@@ -15,22 +29,21 @@ export function SquareUI({
   isKingInCheck,
   isCheckmate,
   isOpponentPiece,
-  isEnPassantTarget,
+  isEnPassantTarget = false,
   isLastMoveFrom,
   isLastMoveTo,
-}) {
+}: SquareUIProps) {
   const squareLabel = PgnNotation.idxToXY(squareIndex);
   
   const row = Math.floor(squareIndex / 8);
   const col = squareIndex % 8;
 
-  const isPositionsBottom = row == 7;
-  const isPositionsRight = col == 7;
+  const isPositionsBottom = row === 7;
+  const isPositionsRight = col === 7;
 
   return (
     <button
       title={squareLabel}
-      alt={squareLabel}
       aria-label={squareLabel}
       className={`square 
         ${isSelected ? 'selected' : ''} 

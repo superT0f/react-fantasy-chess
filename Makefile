@@ -32,7 +32,9 @@ clean:
 prod: clean
 	@echo "$(YELLOW)🏗️  Building for production...$(NC)"
 	npm run build
-	@echo "$(GREEN)✓ Production build completed$(NC)"
+	@echo "$(YELLOW)📂 Copying PHP API files...$(NC)"
+	cp -r src/php/api build/api
+	@echo "$(GREEN)✓ Production build completed with PHP API$(NC)"
 dev:
 	@echo "$(YELLOW)🚀 Starting development server...$(NC)"
 	npm run start
@@ -58,14 +60,24 @@ else
 	@echo "$(YELLOW)🔍 Searching for '$(GREP_ME)' in ./src/...$(NC)"
 	@grep --color=auto -rin "$(GREP_ME)" ./src/ || echo "$(YELLOW)No results found for '$(GREP_ME)'$(NC)"
 endif
-php-serve:
+backend-deps:
+	@echo "$(YELLOW)📦 Installing backend dependencies...$(NC)"
+	@cd src/backend && composer install
+	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
+php-serve-start: backend-deps
 	@echo "$(YELLOW)🚀 Starting PHP server for production preview...$(NC)"
-	@php -S localhost:4242 -t ./public/api/ >> logs/php.log 2>&1 &
+	@cd ./src/backend && php -S localhost:4242 -t api/ >> ../../logs/php.log 2>&1 &
 	@sleep 1
-
 	@echo "$(GREEN)✓ PHP server started at http://localhost:4242$(NC)"
-	@echo "$(YELLOW)You can stop it by running 'pkill -f ''php -S localhost:4242''$(NC)"
-	@echo "$(GREEN)Happy testing!$(NC)"
+	@echo "$(YELLOW)You can stop it by running 'make php-serve-stop'$(NC)"
+	@echo "$(YELLOW)Logs are being written to logs/php.log$(NC)"
+	@echo "$(GREEN)Happy testing$(NC)"
+php-serve-stop: ./src/backend/serve.pid
+	@echo "$(YELLOW)🛑 Stopping PHP server...$(NC)"
+	@pkill -e -f "php -S localhost:4242" 2>&1 || echo "$(YELLOW)⚠️  No PHP server running$(NC)"
+	@rm ./src/backend/serve.pid
+	@echo "$(GREEN)✓ PHP server stopped$(NC)"
+php-serve: php-serve-stop php-serve-start
 mount:
 	@echo "$(YELLOW)⛰️ Mounting Gandi to ./production...$(NC)"
 	@mkdir ./production || (echo "$(YELLOW)./production already exists$(NC)" ; exit 1)
@@ -84,7 +96,9 @@ umount:
 	@rmdir ./production 2>/dev/null || true
 ingest:
 	@echo "$(YELLOW)📥 Ingesting content...$(NC)"
-	gitingest . -e build -e production -e node_modules -e .git -e .vscode -e logs -e src/.env
+	gitingest . -e build -e production -e node_modules -e .git -e .vscode \
+	-e logs -e src/.env -e src/backend/vendor -e src/assets/themes -e public/assets \
+	-e README.md -e LICENCE.md -e CHANGELOG -e TODO.md 
 	@echo "$(GREEN)✓ Content ingested$(NC)"
 	@ls -lh digest.txt
 ingest-light:

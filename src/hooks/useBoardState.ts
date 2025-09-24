@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Square, Piece, Move } from 'chess.js';
+import { Square, Piece, Move, WHITE } from 'chess.js';
 import chessEngine from '../logic/chessEngine';
 
 interface UseBoardStateReturn {
@@ -11,7 +11,7 @@ interface UseBoardStateReturn {
 
 interface LocalBoardState {
   selectedSquare: Square | null;
-  validMoves: Square[];
+  validSquares: Square[];
   lastMovedSquare?: Square | null;
   promotionSquare?: Square | null;
 }
@@ -23,7 +23,7 @@ export function useBoardState(
 
   const [localState, setLocalState] = useState<LocalBoardState>({
     selectedSquare: null,
-    validMoves: [],
+    validSquares: [],
   });
 
   const handleSquareClick = (toSquare: Square, gameStatus: string) => {
@@ -39,7 +39,7 @@ export function useBoardState(
       // Deselect if clicking the same square
       setLocalState({
         selectedSquare: null,
-        validMoves: [],
+        validSquares: [],
       });
       return;
     }
@@ -49,10 +49,12 @@ export function useBoardState(
       return;
     }
     if (pieceTo?.color === chess.turn()) {
+      const moves = chess.moves({ square: toSquare, verbose: true });
+      const validSquares = moves.map((move: Move) => move.to);
 
       setLocalState({
         selectedSquare: toSquare,
-        validMoves: (chess.moves as unknown as Move[]).map((move: Move) => move.to),
+        validSquares: validSquares,
         lastMovedSquare: null,
         promotionSquare: null,
     });
@@ -60,7 +62,8 @@ export function useBoardState(
 
   if (pieceFrom && fromSquare) {
     // Pawn promotion check
-    if (pieceFrom?.type === 'p' && (toSquare[1] === '8' || toSquare[1] === '1')) {
+    const promoteRow = (chess.turn() === WHITE) ? '1' : '8';
+    if (pieceFrom?.type === 'p' && (toSquare[1] === promoteRow)) {
       onPromotion(fromSquare, toSquare);
       // the actual move will be handled after promotion
       return;
@@ -72,7 +75,7 @@ export function useBoardState(
       const move = chessEngine.move({ from: fromSquare, to: toSquare });
       setLocalState({
         selectedSquare: null,
-        validMoves: [],
+        validSquares: [],
       });
       onMove(move);
     } catch (error) {
@@ -91,14 +94,14 @@ const handleMouseEnter = (square:Square) => {
     setLocalState((prev: LocalBoardState) => ({
       ...prev,
       isOpponentPiece: (piece.color as 'w' | 'b') !== chess.turn(),
-      validMoves: moves.map((move: { to: Square }) => move.to)
+      validSquares: moves.map((move: { to: Square }) => move.to)
     }));
   }
 };
 
 const handleMouseLeave = () => {
   if (localState.selectedSquare) return;
-  setLocalState(prev => ({ ...prev, validMoves: [] }));
+  setLocalState(prev => ({ ...prev, validSquares: [] }));
 };
 
 return { localState, handleSquareClick, handleMouseEnter, handleMouseLeave };

@@ -10,8 +10,18 @@ export enum LogLevel {
 
 export class Logger {
     private static verboseLevels = LogLevel;
-    private static currentVerbose = Logger.getStoredVerboseLevel() || LogLevel.MUTE;
-
+    private static currentVerbose =
+        Logger.getVerboseLevelFromParams() ||
+        Logger.getStoredVerboseLevel() ||
+        LogLevel.MUTE;
+    private static getVerboseLevelFromParams(): LogLevel | null {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramValue = urlParams.get('log_verbose')?.toUpperCase();
+        if (paramValue && LogLevel.hasOwnProperty(paramValue)) {
+            return LogLevel[paramValue as keyof typeof LogLevel];
+        }
+        return null;
+    }
     private static getStoredVerboseLevel(): LogLevel | null {
         const cookieValue = Logger.getCookie('log_verbose')?.toUpperCase();
         if (cookieValue &&
@@ -105,7 +115,7 @@ export class Logger {
         return level <= this.currentVerbose;
     }
 
-    public static logBoard(){
+    public static logBoard() {
         ConsoleBoard.log();
     }
 }

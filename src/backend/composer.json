@@ -1,0 +1,10 @@
+{
+    "autoload": {
+        "psr-4": {
+            "FantasyChess\\": "src/"
+        }
+    },
+    "require": {
+        "asko/router": "^3.0"
+    }
+}

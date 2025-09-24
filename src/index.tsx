@@ -5,7 +5,6 @@ import Game from './Game';
 import Footer from './components/Footer';
 import "./assets/styles.css";
 import { ThemeProvider } from "./context/ThemeContext";
-import Burger from './components/Burger';
 
 const container = document.getElementById("root");
 if (!container) {
@@ -16,7 +15,6 @@ root.render(
   <StrictMode>
     <ThemeProvider>
       <Logo />
-      <Burger />
       <Game />
       <Footer />
     </ThemeProvider>

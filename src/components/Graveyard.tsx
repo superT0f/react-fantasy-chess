@@ -1,4 +1,5 @@
-import { Color, PieceSymbol } from 'chess.js';
+import { Color, PieceSymbol, WHITE } from 'chess.js';
+import { TimerDisplay } from './TimerDisplay';
 
 interface GraveyardProps {
   captured: PieceSymbol[];
@@ -58,10 +59,8 @@ export function Graveyard({
   return (
     <div className={`graveyard graveyard-${player}`}>
       <div className="graveyard-header">
-        <h3>{player} : </h3>
-        <div className={`timer ${player} ${active ? 'active' : ''}`}>
-          {formatTime(timeLeft[player])}
-        </div>
+        <h3>{player===WHITE?'White':'Black'}:</h3>
+        <TimerDisplay timeLeft={timeLeft[player]} formatTime={formatTime} player={player} active={active} />
         {graveDiff > 0 && (
           <div className="graveDiff">+{graveDiff}</div>
         )}

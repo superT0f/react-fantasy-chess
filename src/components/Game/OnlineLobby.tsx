@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 
-export function OnlineLobby({ onJoin, onCreate, onExit }) {
+interface OnlineLobbyProps {
+  userRooms:any[];
+  onJoin: (roomId: string) => void;
+  onCreate: () => void;
+  onExit: () => void;
+}
+
+export function OnlineLobby({ userRooms, onJoin, onCreate, onExit }: OnlineLobbyProps) {
   const [roomId, setRoomId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  const useRoomIdFromURL = (setRoomId, searchParams = new URLSearchParams(window.location.search)) => {
+  const useRoomIdFromURL = (setRoomId: (roomId: string) => void) => {
     useEffect(() => {
+      const searchParams = new URLSearchParams(window.location.search);
       const roomIdFromURL = searchParams.get('room');
 
       if (roomIdFromURL) {
@@ -15,21 +23,34 @@ export function OnlineLobby({ onJoin, onCreate, onExit }) {
   };
 
   useRoomIdFromURL(setRoomId);
+  
   if (roomId.length > 6) {
-    roomId = roomId.toUpperCase();
+    const upperRoomId = roomId.toUpperCase();
+    setRoomId(upperRoomId);
+    setIsCreating(true);
     onCreate();
   }
+
   return (
     <div className="online-lobby">
       <div className="lobby-header">
         <h2>Online Multiplayer</h2>
-
       </div>
-
+      {userRooms.length > 0 && (
+        <div className="user-rooms">
+          <h3>Your Existing Rooms</h3>
+          {userRooms.map(room => (
+            <div key={room.room_id} className="room-item">
+              <span>Room: {room.room_id}</span>
+              <button onClick={() => onJoin(room.room_id)}>
+                Join
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="lobby-options">
         <div className="lobby-option join-option">
-          {/* <h3>Join an Existing Game</h3>
-          <p>Enter a game code to join your friend's game</p> */}
           <div className="join-form">
             <div className="divider">
                 <input
@@ -41,7 +62,6 @@ export function OnlineLobby({ onJoin, onCreate, onExit }) {
                   className="room-input"
                 />
             </div>
-
 
             <button
               className="start-btn lobby-button"
@@ -61,7 +81,6 @@ export function OnlineLobby({ onJoin, onCreate, onExit }) {
               &larr; Back
             </button>
           </div>
-
         </div>
       </div>
 

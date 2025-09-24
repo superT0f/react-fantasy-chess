@@ -1,0 +1,62 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "14e80467f4ab0768257db57e677e62d6",
+    "packages": [
+        {
+            "name": "asko/router",
+            "version": "v3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/askonomm/router.git",
+                "reference": "38f9e0df24da5ecca5e6b43560f6230ed3d8bd07"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/askonomm/router/zipball/38f9e0df24da5ecca5e6b43560f6230ed3d8bd07",
+                "reference": "38f9e0df24da5ecca5e6b43560f6230ed3d8bd07",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Asko\\Router\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Asko Nõmm",
+                    "email": "asko@repl.ee"
+                }
+            ],
+            "description": "A minimal PHP router with configuration-free dependency injection",
+            "support": {
+                "issues": "https://github.com/askonomm/router/issues",
+                "source": "https://github.com/askonomm/router/tree/v3.0"
+            },
+            "time": "2024-05-30T22:24:28+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.2.0"
+}

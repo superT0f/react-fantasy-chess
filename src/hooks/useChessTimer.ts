@@ -1,59 +1,87 @@
 import { Color } from 'chess.js';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
-export function useChessTimer(initialTime:number = 600) {
+export function useChessTimer(initialTime: number = 600) {
   const [timeLeft, setTimeLeft] = useState({ 'w': initialTime, 'b': initialTime });
-  const [currentPlayer, setCurrentPlayer] = useState<Color|null>(null);
-  const timerRef = useRef<number>(undefined);
+  const [currentPlayer, setCurrentPlayer] = useState<Color | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const currentPlayerRef = useRef<Color | null>(null);
 
-  const startTimer = useCallback((player:Color, onTimeout:any) => {
-    clearInterval(timerRef.current);
+  // Sync ref with state
+  useEffect(() => {
+    currentPlayerRef.current = currentPlayer;
+  }, [currentPlayer]);
+
+  const startTimer = useCallback((player: Color, onTimeout: () => void) => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     setCurrentPlayer(player);
+    currentPlayerRef.current = player;
 
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
-        if (!currentPlayer) return prev;
-        const newTime = { ...prev };
-        newTime[currentPlayer] = Math.max(0, newTime[currentPlayer] - 1);
+        const current = currentPlayerRef.current;
+        if (!current) return prev;
 
-        if (newTime[currentPlayer] <= 0) {
-          clearInterval(timerRef.current);
-          onTimeout?.(currentPlayer);
+        const newTime = { ...prev };
+        newTime[current] = Math.max(0, newTime[current] - 1);
+
+        // Check for timeout
+        if (newTime[current] <= 0) {
+          clearInterval(timerRef.current as NodeJS.Timeout);
+          timerRef.current = null;
+          onTimeout();
         }
 
         return newTime;
       });
-    }, 1000) as unknown as number;
+    }, 1000);
   }, []);
 
-
-  const stoptTimers = () => {
-    clearInterval(timerRef.current);
+  const stopTimers = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setCurrentPlayer(null);
-  }
+    currentPlayerRef.current = null;
+  }, []);
 
-  const switchPlayer = useCallback((newPlayer: Color, onTimeout: Function) => {
+  const switchPlayer = useCallback((newPlayer: Color, onTimeout: () => void) => {
     startTimer(newPlayer, onTimeout);
   }, [startTimer]);
 
-  const formatTime = (seconds:number) => {
+  const formatTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  }, []);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
+    stopTimers();
     setTimeLeft({ 'w': initialTime, 'b': initialTime });
-    setCurrentPlayer(null);
-    clearInterval(timerRef.current);
-  };
+  }, [initialTime, stopTimers]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   return { 
     timeLeft, 
     startTimer,
-    stoptTimers,
+    stopTimers, 
     switchPlayer,
     formatTime, 
-    resetTimer 
+    resetTimer,
+    currentPlayer
   };
 }

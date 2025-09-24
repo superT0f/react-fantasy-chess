@@ -11,20 +11,20 @@ interface BoardProps {
 }
 
 export function Board({ onMove, gameStatus, lastMove, onPromotion }: BoardProps) {
-  const { 
-    localState, 
-    handleSquareClick, 
-    handleMouseEnter, 
-    handleMouseLeave 
+  const {
+    localState,
+    handleSquareClick,
+    handleMouseEnter,
+    handleMouseLeave
   } = useBoardState(onMove, onPromotion);
 
   return (
-        <BoardRow
-          lastMove={lastMove}
-          localState={localState}
-          onClick={(i: any) => handleSquareClick(i, gameStatus)}
-          onMouseEnter={(i: any) => handleMouseEnter(i)}
-          onMouseLeave={handleMouseLeave}
-        />
+    <BoardRow
+      lastMove={lastMove}
+      localState={localState}
+      onClick={(i: any) => handleSquareClick(i, gameStatus)}
+      onMouseEnter={(i: any) => handleMouseEnter(i)}
+      onMouseLeave={handleMouseLeave}
+    />
   );
 }

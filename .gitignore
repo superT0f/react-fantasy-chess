@@ -4,3 +4,4 @@ build/*
 production
 .env
 logs/*.log
+src/backend/vendor/*

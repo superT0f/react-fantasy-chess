@@ -5,7 +5,7 @@ import EntityUI from '../Board/EntityUI';
 import { OnlineLobby } from './OnlineLobby';
 
 
-export function GameModeSelection({ onStartNewGame, onStartPuzzle, joinOnlineGame,
+export function GameModeSelection({ userRooms, onStartNewGame, onStartPuzzle, joinOnlineGame,
    createOnlineGame }) {
   const [selectedMode, setSelectedMode] = useState(null);
   const [aiDifficulty, setAiDifficulty] = useState('easy');
@@ -58,7 +58,7 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle, joinOnlineGam
               onClick={() => setAiDifficulty('easy')}
             >
               ♟️ Easy
-              <span className="difficulty-desc">Good for beginners</span>
+              {/* <span className="difficulty-desc">Good for beginners</span> */}
             </button>
 
             <button
@@ -66,7 +66,7 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle, joinOnlineGam
               onClick={() => setAiDifficulty('medium')}
             >
               ♞ Medium
-              <span className="difficulty-desc">Balanced challenge</span>
+              {/* <span className="difficulty-desc">Balanced challenge</span> */}
             </button>
 
             <button
@@ -74,7 +74,7 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle, joinOnlineGam
               onClick={() => setAiDifficulty('hard')}
             >
               ♛ Hard
-              <span className="difficulty-desc">For experienced players</span>
+              {/* <span className="difficulty-desc">For experienced players</span> */}
             </button>
           </div>
         </div>
@@ -117,6 +117,7 @@ export function GameModeSelection({ onStartNewGame, onStartPuzzle, joinOnlineGam
   if (selectedMode === 'lobby') {
     return (
       <OnlineLobby
+        userRooms={userRooms}
         onJoin={joinOnlineGame}
         onCreate={createOnlineGame}
         onExit={backToModeSelection}
