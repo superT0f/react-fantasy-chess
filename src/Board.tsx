@@ -4,13 +4,14 @@ import { Move, Square } from 'chess.js';
 import { LastMove } from './types/chess';
 
 interface BoardProps {
+  autoRotate: boolean;
   onMove: (move: Move) => void;
   gameStatus: string;
   lastMove: LastMove | null;
   onPromotion: (from: Square, to: Square) => void;
 }
 
-export function Board({ onMove, gameStatus, lastMove, onPromotion }: BoardProps) {
+export function Board({ autoRotate, onMove, gameStatus, lastMove, onPromotion }: BoardProps) {
   const {
     localState,
     handleSquareClick,
@@ -20,6 +21,7 @@ export function Board({ onMove, gameStatus, lastMove, onPromotion }: BoardProps)
 
   return (
     <BoardRow
+      autoRotate={autoRotate}
       lastMove={lastMove}
       localState={localState}
       onClick={(i: any) => handleSquareClick(i, gameStatus)}

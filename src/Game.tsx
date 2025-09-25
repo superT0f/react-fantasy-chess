@@ -436,23 +436,7 @@ export default function Game() {
     stopTimers();
   }, [chess, gameStatus, stopTimers]);
 
-  // const [pollInterval, setPollInterval] =useState<number | null>(null);
-  // useEffect(() => {
-  //   if (gameStatus !== 'playing') return;
-
-  //   const isTimeout = timeLeft[WHITE] <= 0 || timeLeft[BLACK] <= 0;
-  //   if (isTimeout) {
-  //     setGameStatus('timeout');
-  //     setWinner(timeLeft[WHITE] <= 0 ? 'BLACK' : 'WHITE');
-  //     if (timerRef.current !== null) {
-  //       clearInterval(timerRef.current);
-  //     }
-  //   }
-
-
-
-
-  // }, [timeLeft, gameStatus]);
+  const autoRotate = (gameMode==='pvp');
   const handleLogout = async () => {
     try {
       await fetch(`${config.apiUrl}/logout`, {
@@ -468,7 +452,7 @@ export default function Game() {
       Cookie.clearRememberMe();
       setShowAuthModal(true);
     }
-  }; const shareUrl = `${window.location.origin}?room=${roomId}`;
+  }; const shareUrl = `${window.location.href}`;
 
   return (
     <ThemeProvider>
@@ -508,6 +492,7 @@ export default function Game() {
             <div className="board-container">
               <div className="game-board">
                 <Board
+                  autoRotate={autoRotate}
                   onMove={handlePuzzleMove}
                   onPromotion={handlePromotion}
                   lastMove={lastMove}
@@ -592,6 +577,7 @@ export default function Game() {
                 </div>
                 <div className="game-board">
                   <Board
+                    autoRotate={autoRotate}
                     onMove={puzzleMode ? handlePuzzleMove : handleMove}
                     onPromotion={handlePromotion}
                     lastMove={lastMove}

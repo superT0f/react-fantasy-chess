@@ -1,11 +1,12 @@
-import { Square } from 'chess.js';
+import { BLACK, Square } from 'chess.js';
 import PgnNotation from "../../logic/PgnNotation";
 import { SquareUI } from "./SquareUI";
 import chessEngine from '../../logic/chessEngine';
 import { LastMove } from '../../types/chess';
 
 interface BoardRowProps {
-  lastMove: LastMove | null
+  autoRotate:boolean;
+  lastMove: LastMove | null;
   localState: {
     validSquares: Square[];
     selectedSquare: Square | null;
@@ -16,6 +17,7 @@ interface BoardRowProps {
 }
 
 export function BoardRow({
+  autoRotate,
   lastMove,
   localState,
   onClick,
@@ -26,10 +28,11 @@ export function BoardRow({
 
   return (
     <>
-      {Array(8).fill(null).map((_, row) => (
-        <div className="board-row" key={row}>
+      {Array(8).fill(null).map((_, row) => {
+        const currentRow = (autoRotate && chess.turn() === BLACK) ? 7 - row : row;
+        return (<div className="board-row" key={currentRow}>
           {Array(8).fill(null).map((_, col) => {
-            const squareIndex = row * 8 + col;
+            const squareIndex = currentRow * 8 + col;
             const square = PgnNotation.idxToXY(squareIndex);
             if (!square) return null; // Handle potential null square
 
@@ -62,8 +65,8 @@ export function BoardRow({
               />
             );
           })}
-        </div>
-      ))}
+        </div>)
+      })}
     </>
   );
 }

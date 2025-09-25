@@ -38,7 +38,7 @@ export function SquareUI({
   const row = Math.floor(squareIndex / 8);
   const col = squareIndex % 8;
 
-  const isPositionsBottom = row === 7;
+  const isPositionsBottom = row === 7 || row === 0;
   const isPositionsRight = col === 7;
 
   return (
