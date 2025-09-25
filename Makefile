@@ -62,21 +62,32 @@ else
 endif
 backend-deps:
 	@echo "$(YELLOW)📦 Installing backend dependencies...$(NC)"
-	@cd src/backend && composer install
+	cd src/backend && composer -q install 2>/dev/null >/dev/null
 	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
 php-serve-start: backend-deps
 	@echo "$(YELLOW)🚀 Starting PHP server for production preview...$(NC)"
-	@cd ./src/backend && php -S localhost:4242 -t api/ >> ../../logs/php.log 2>&1 &
+	@mkdir -p logs
+	@cd ./src/backend && php -S localhost:4242 -t api/ >> ../../logs/php.log 2>&1 & \
+	echo $$! > ./src/backend/serve.pid
 	@sleep 1
 	@echo "$(GREEN)✓ PHP server started at http://localhost:4242$(NC)"
 	@echo "$(YELLOW)You can stop it by running 'make php-serve-stop'$(NC)"
 	@echo "$(YELLOW)Logs are being written to logs/php.log$(NC)"
 	@echo "$(GREEN)Happy testing$(NC)"
-php-serve-stop: ./src/backend/serve.pid
+php-serve-stop:
 	@echo "$(YELLOW)🛑 Stopping PHP server...$(NC)"
-	@pkill -e -f "php -S localhost:4242" 2>&1 || echo "$(YELLOW)⚠️  No PHP server running$(NC)"
-	@rm ./src/backend/serve.pid
-	@echo "$(GREEN)✓ PHP server stopped$(NC)"
+	@if [ -f ./src/backend/serve.pid ]; then \
+		PID=$$(cat ./src/backend/serve.pid); \
+		if ps -p $$PID > /dev/null 2>&1; then \
+			kill $$PID && echo "$(GREEN)✓ PHP server stopped (pid $$PID)$(NC)"; \
+			rm -f ./src/backend/serve.pid; \
+		else \
+			echo "$(YELLOW)⚠️  No PHP server running with pid $$PID$(NC)"; \
+			rm -f ./src/backend/serve.pid; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠️  No PID file found, is server running ? $(NC)"; \
+	fi
 php-serve: php-serve-stop php-serve-start
 mount:
 	@echo "$(YELLOW)⛰️ Mounting Gandi to ./production...$(NC)"

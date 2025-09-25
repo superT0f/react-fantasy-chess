@@ -5,3 +5,4 @@ production
 .env
 logs/*.log
 src/backend/vendor/*
+serve.pid
