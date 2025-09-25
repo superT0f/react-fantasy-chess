@@ -42,19 +42,33 @@ class GameController
 
     public function postGame($roomId)
     {
-        
+
 
         $input = json_decode(file_get_contents('php://input'), true);
         $userId = $_GET['userId'] ?? $input['userId'] ?? require_auth();
-        $gameState = json_encode($input['gameState'] ?? []);
+        if (!is_numeric($userId)) {
+            die(json_encode(["status" => "Valid userId required"]));
+        }
+
+        $roomId = $input['roomId'];
+
+        $gameState = array_merge($input['gameState'], [
+            'creatorColor' => $input['gameState']['creatorColor'] ?? 'w'
+        ]);
 
         $stmt = $this->conn->prepare("INSERT INTO chess_games (user_id, room_id, game_state) 
                             VALUES (?, ?, ?) 
                             ON DUPLICATE KEY UPDATE 
                             game_state = ?, last_updated = CURRENT_TIMESTAMP");
-        $stmt->bind_param("ssss", $userId, $roomId, $gameState, $gameState);
+        $gameStateJson = json_encode($gameState);
+        $stmt->bind_param("ssss", $userId, $roomId, $gameStateJson, $gameStateJson);
         $stmt->execute();
 
-        echo json_encode(["status" => "success", "roomId" => $roomId, "gameState" => $gameState]);
+        echo json_encode([
+            "status" => "success",
+            "roomId" => $roomId,
+            "gameState" => $gameState,
+            "creatorColor" => $gameState['creatorColor']
+        ]);
     }
 }

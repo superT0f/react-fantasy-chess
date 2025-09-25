@@ -39,3 +39,10 @@ export interface TimerState {
   white: number;
   black: number;
 }
+
+export interface OnlineGameState {
+  fen: string;
+  history: string[];
+  players: PieceColor[];
+  creatorColor: PieceColor;
+}

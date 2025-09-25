@@ -61,7 +61,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     setError('');
 
     try {
-      const response = await fetch(`${config.apiUrl}/login.php`, {
+      const response = await fetch(`${config.apiUrl}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

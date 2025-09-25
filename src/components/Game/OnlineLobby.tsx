@@ -1,15 +1,18 @@
+import { BLACK, WHITE } from 'chess.js';
 import { useState, useEffect } from 'react';
+import EntityUI from '../Board/EntityUI';
 
 interface OnlineLobbyProps {
-  userRooms:any[];
+  userRooms: any[];
   onJoin: (roomId: string) => void;
-  onCreate: () => void;
+  onCreate: (creatorColor: typeof WHITE | typeof BLACK) => void; // Modifié
   onExit: () => void;
 }
 
 export function OnlineLobby({ userRooms, onJoin, onCreate, onExit }: OnlineLobbyProps) {
   const [roomId, setRoomId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [creatorColor, setCreatorColor] = useState<'white' | 'black'>('white');
 
   const useRoomIdFromURL = (setRoomId: (roomId: string) => void) => {
     useEffect(() => {
@@ -23,69 +26,95 @@ export function OnlineLobby({ userRooms, onJoin, onCreate, onExit }: OnlineLobby
   };
 
   useRoomIdFromURL(setRoomId);
-  
-  if (roomId.length > 6) {
-    const upperRoomId = roomId.toUpperCase();
-    setRoomId(upperRoomId);
-    setIsCreating(true);
-    onCreate();
-  }
-
   return (
     <div className="online-lobby">
       <div className="lobby-header">
-        <h2>Online Multiplayer</h2>
+        <h2>Online</h2>
+      </div>
+      <div className="divider"> ➛ Create new game as</div>
+      <div className="color-selection">
+        
+        <div className="color-options">
+          <label>
+            <input
+              type="radio"
+              name="creatorColor"
+              value="white"
+              checked={creatorColor === 'white'}
+              onChange={(e) => setCreatorColor(e.target.value as 'white' | 'black')}
+            />
+            <span className="color-option white-option">
+              <EntityUI piece={{color: WHITE, type: 'k'}} />
+              white
+            </span>
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="creatorColor"
+              value="black"
+              checked={creatorColor === 'black'}
+              onChange={(e) => setCreatorColor(e.target.value as 'white' | 'black')}
+            />
+            <span className="color-option black-option">
+              <EntityUI piece={{color: BLACK, type: 'k'}} />
+              black
+            </span>
+          </label>
+        </div>
+        
+        <button
+          className="lobby-button start-btn primary"
+          onClick={() => {
+            setIsCreating(true);
+            onCreate(creatorColor === 'white' ? WHITE : BLACK);
+          }}
+          disabled={isCreating}
+        >
+          {isCreating ? 'Creating...' : `Create and play as ${creatorColor}`}
+        </button>
+      </div>
+      <div className="divider"> ➛ Join a party</div>
+      <div className="join-section">
+        <div className="join-form">
+          <input
+            type="text"
+            placeholder="Enter Room ID"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value.toUpperCase())}
+            maxLength={6}
+            className="room-input"
+          />
+          <button
+            className="start-btn lobby-button"
+            onClick={() => onJoin(roomId)}
+            disabled={roomId.length < 4}
+          >
+            join
+          </button>
+        </div>
       </div>
       {userRooms.length > 0 && (
         <div className="user-rooms">
-          <h3>Your Existing Rooms</h3>
+          <div className="divider"> ➛ Continue your current games :</div>
           {userRooms.map(room => (
             <div key={room.room_id} className="room-item">
-              <span>Room: {room.room_id}</span>
-              <button onClick={() => onJoin(room.room_id)}>
-                Join
+              
+              <button className="start-btn lobby-button" onClick={() => onJoin(room.room_id)}>
+                Join 
               </button>
+              <span>: {room.room_id}</span>
             </div>
           ))}
         </div>
       )}
-      <div className="lobby-options">
-        <div className="lobby-option join-option">
-          <div className="join-form">
-            <div className="divider">
-                <input
-                  type="text"
-                  placeholder="Enter Game Code"
-                  value={roomId}
-                  onChange={(e) => setRoomId(e.target.value.toUpperCase())}
-                  maxLength={6}
-                  className="room-input"
-                />
-            </div>
 
-            <button
-              className="start-btn lobby-button"
-              onClick={() => onJoin(roomId)}
-              disabled={roomId.length < 4}
-            >
-              Join Game
-            </button>
-            <button
-              className="lobby-button start-btn primary"
-              onClick={onCreate}
-              disabled={isCreating}
-            >
-              {isCreating ? 'Creating...' : 'Create Game'}
-            </button>
-            <button className="back-btn" onClick={onExit}>
-              &larr; Back
-            </button>
-          </div>
-        </div>
-      </div>
+      <button className="back-btn" onClick={onExit}>
+        &larr; Back
+      </button>
 
       <div className="lobby-footer">
-        <p>Share the game code with your opponent to play together</p>
+        <p>Share party code to your friend</p>
       </div>
     </div>
   );

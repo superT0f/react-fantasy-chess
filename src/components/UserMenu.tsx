@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, MouseEventHandler } from 'react';
 import { UserData } from '../types/user';
 
 interface UserMenuProps {
@@ -23,7 +23,9 @@ const UserMenu = ({ user, onLogout }: UserMenuProps) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
+  const home: MouseEventHandler<HTMLButtonElement> = () => {
+    window.location.replace('./');
+  };
   return (
     <div className="user-menu-container" ref={menuRef}>
       <div className="user-avatar" onClick={() => setIsOpen(!isOpen)}>
@@ -43,10 +45,11 @@ const UserMenu = ({ user, onLogout }: UserMenuProps) => {
             <strong>{user.username}</strong>
             <span>{user.email}</span>
           </div>
-          <button><i>👤</i> Profile</button>
-          <button><i>⚙️</i> Settings</button>
-          <button><i>📊</i> Statistics</button>
-          <button><i>🎮</i> My Games</button>
+          <button onClick={home}  >🏠 Home</button>
+          <button                 >👤 Profile</button>
+          <button                 >⚙️ Settings</button>
+          <button                 >📊 Statistics</button>
+          <button                 >🎮 My Games</button>
           <hr />
           <button onClick={onLogout}><i>🚪</i> Logout</button>
         </div>

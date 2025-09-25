@@ -6,3 +6,4 @@ production
 logs/*.log
 src/backend/vendor/*
 serve.pid
+src/backend/serve.pid
