@@ -33,7 +33,7 @@ const UserMenu = ({ user, onLogout }: UserMenuProps) => {
           <img src={user.avatar} alt={user.username} />
         ) : (
           <img
-            src='https://avatars.githubusercontent.com/u/174439585?v=4'
+            src='./assets/avatar_default.webp'
             alt={user.username}
           />
         )}
