@@ -8,6 +8,7 @@ interface GraveyardProps {
   timeLeft: { w: number; b: number };
   formatTime: (seconds: number) => string;
   active: boolean;
+  username?: string | undefined;
 }
 
 interface PieceCount {
@@ -22,7 +23,7 @@ interface GroupedPiece {
 
 export function Graveyard({
   captured, player, graveDiff,
-  timeLeft, formatTime, active }: GraveyardProps) {
+  timeLeft, formatTime, active, username }: GraveyardProps) {
   const eValues: Record<string, number> = {
     'p': 1,
     'n': 3,
@@ -59,7 +60,7 @@ export function Graveyard({
   return (
     <div className={`graveyard graveyard-${player}`}>
       <div className="graveyard-header">
-        <h3>{player===WHITE?'White':'Black'}:</h3>
+        <h3>{username || (player===WHITE?'White':'Black')}:</h3>
         <TimerDisplay timeLeft={timeLeft[player]} formatTime={formatTime} player={player} active={active} />
         {graveDiff > 0 && (
           <div className="graveDiff">+{graveDiff}</div>

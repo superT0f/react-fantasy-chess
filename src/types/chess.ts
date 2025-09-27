@@ -1,4 +1,4 @@
-import { PieceSymbol } from "chess.js";
+import { BLACK, PieceSymbol, WHITE } from "chess.js";
 
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 export type PieceColor = 'w' | 'b';
@@ -45,4 +45,8 @@ export interface OnlineGameState {
   history: string[];
   players: PieceColor[];
   creatorColor: PieceColor;
+}
+export interface Players {
+  [WHITE] : string,
+  [BLACK] : string
 }

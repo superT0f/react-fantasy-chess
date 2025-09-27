@@ -5,7 +5,7 @@ import EntityUI from '../Board/EntityUI';
 interface OnlineLobbyProps {
   userRooms: any[];
   onJoin: (roomId: string) => void;
-  onCreate: (creatorColor: typeof WHITE | typeof BLACK) => void; // Modifié
+  onCreate: (creatorColor: typeof WHITE | typeof BLACK) => void;
   onExit: () => void;
 }
 

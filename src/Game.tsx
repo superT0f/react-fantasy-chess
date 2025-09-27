@@ -12,9 +12,9 @@ import { Logger } from './utils/Logger';
 import { PuzzleGameComponent } from './components/Game/PuzzleGame';
 import PuzzleGame from './logic/PuzzleGame';
 import chessEngine from './logic/chessEngine';
-import { WHITE, Chess, BLACK, Move, Piece, PieceSymbol, Square } from 'chess.js';
+import { WHITE, Chess, BLACK, Move, Piece, PieceSymbol, Square, Color } from 'chess.js';
 import config from './config';
-import { LastMove } from './types/chess';
+import { LastMove, Players } from './types/chess';
 import { AuthModal } from './components/Auth/AuthModal';
 import { UserData } from './types/user';
 
@@ -132,6 +132,11 @@ export default function Game() {
     currentPlayer: timerPlayer // Rename to avoid conflict
   } = useChessTimer(600);
 
+  const [onlinePlayers, setOnlinePlayers] = useState<Players>({
+    [WHITE]: 'White',
+    [BLACK]: 'Black'
+  });
+
   const [capturedByWhite, setCapturedByWhite] = useState<PieceSymbol[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<PieceSymbol[]>([]);
   const updateCaptured = (
@@ -177,13 +182,19 @@ export default function Game() {
     };
   };
 
-  const createOnlineGame = () => {
+  const createOnlineGame = (choosenColor: Color) => {
     const newRoomId = generateRoomId();
     // Send initial game state to the server
+    const players = (choosenColor === WHITE) ? {
+      [WHITE]: user?.username || 'You', [BLACK]: 'Waiting for player'
+    } : {
+      [WHITE]: 'Waiting for player', [BLACK]: user?.username || 'You'
+    };
     const gameState = {
       fen: chess.fen(),
-      player: [WHITE],
-      history: chess.history()
+      player: [choosenColor],
+      history: chess.history(),
+      players: players
     };
     try {
       fetch(`${config.apiUrl}/game/${newRoomId}`, {
@@ -223,48 +234,71 @@ export default function Game() {
       startNewGame('online'); // Default to white when joining
     }
   }, []);
+  const onTimeout = useCallback(() => {
+    if (gameStatus !== 'playing') return;
 
-
+    const winner = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
+    setGameStatus('timeout');
+    setWinner(winner);
+    stopTimers();
+  }, [chess, gameStatus, stopTimers]);
   const fetchOnlineGameState = useCallback(async () => {
     try {
-      if (chess.isGameOver()){
+      if (chess.isGameOver()) {
         return;
       }
+
       const roomId = (new URLSearchParams(window.location.search)).get('room');
       if (!roomId) return;
-      const response = await fetch(`${config.apiUrl}/game/${roomId}`,
-        { credentials: 'include', }
-      );
+
+      const response = await fetch(`${config.apiUrl}/game/${roomId}`, {
+        credentials: 'include',
+      });
       const data = await response.json();
+
+      // Store current state before update
+      const currentHistoryLength = chess.history().length;
+      const currentTurn = chess.turn();
 
       // Update game state from server
       if (data.fen && data.fen !== chess.fen()) {
         chess.load(data.fen);
       }
 
-      if (data.history && JSON.stringify(data.history) !== JSON.stringify(chess.history())) {
+      // Check if it's a new move from opponent
+      if (data.history && data.history.length > currentHistoryLength) {
         // History changed, meaning opponent made a move
         setCapturedByWhite(data.capturedByWhite || []);
         setCapturedByBlack(data.capturedByBlack || []);
 
-        if (data.history.length > chess.history().length) {
-          // It's our turn now
-          setGameStatus('playing');
-          const newPlayer = chess.turn();
+        // Update player usernames if available
+        if (data.players) {
+          setOnlinePlayers(data.players);
+        }
+
+        // Switch timer to current player
+        const newPlayer = chess.turn();
+        if (newPlayer !== currentTurn) {
           switchPlayer(newPlayer, onTimeout);
         }
-      }
 
-      // Check if opponent has joined
-      if (data.players && data.players.length === 2) {
         setGameStatus('playing');
       }
+
     } catch (error) {
       console.error('Error fetching game state:', error);
     }
-  }, []);
+  }, [chess, switchPlayer, onTimeout]);
 
-
+  const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    return () => {
+      // Cleanup polling interval on component unmount
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [pollInterval]);
   async function startNewGame(
     mode: 'pvp' | 'ai' | 'online',
     difficulty: 'easy' | 'medium' | 'hard' = 'easy',
@@ -277,11 +311,11 @@ export default function Game() {
         aggressive   :${aggressive}, 
         aiColor      :${aiColor}
         timerPlayer  :${timerPlayer}`);
-        
+
     stopTimers();
     resetTimer();
     startTimer(WHITE, onTimeout);
-    
+
     setGameMode(mode);
     setGameStatus('playing');
     setWinner(null);
@@ -305,6 +339,9 @@ export default function Game() {
 
     if (mode === 'online') {
       chessEngine.mode = 'online';
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
       // Fetch initial game state from server
       if (roomId) {
         const response = await fetch(`${config.apiUrl}/game/${roomId}`,
@@ -313,6 +350,7 @@ export default function Game() {
         const data: {
           fen?: string;
           history?: Move[];
+          players?: Players
         } = await response.json();
         // Update game state from server
         if (data.fen && data.fen !== chess.fen()) {
@@ -333,11 +371,16 @@ export default function Game() {
             });
           }
         }
+        if (data.players) {
+          setOnlinePlayers(data.players);
+
+        }
+        const interval = setInterval(fetchOnlineGameState, 3500);
+        setPollInterval(interval);
       }
 
       // Set up polling every 3.5 seconds to fetch game state
       setInterval(fetchOnlineGameState, 3500);
-      //setPollInterval(interval);
     }
   }
 
@@ -356,14 +399,22 @@ export default function Game() {
       Logger.debug('Game not in playing state, ignoring move');
       return false;
     }
+    if (gameMode === 'online') {
+      const roomId = new URLSearchParams(window.location.search).get('room');
+      if (roomId) {
+        // Check if it's actually this player's turn
+        const isPlayerTurn = (chess.turn() === WHITE && onlinePlayers[WHITE] === user?.username) ||
+          (chess.turn() === BLACK && onlinePlayers[BLACK] === user?.username);
 
+        if (!isPlayerTurn) {
+          Logger.debug("Not your turn!");
+          return false;
+        }
+      }
+    }
     if (move.captured) {
       updateCaptured(move.captured);
     }
-
-    // const lastMoveData = move;
-    // const lastMoveNotation = lastMoveData ? lastMoveData.san : '';
-
     setLastMove({
       from: move.from,
       to: move.to,
@@ -422,21 +473,8 @@ export default function Game() {
     }
   };
 
-
   const graveDiff = computeGraveDiff();
-
-  // const timerRef = useRef<number | null>(null);
-
-  const onTimeout = useCallback(() => {
-    if (gameStatus !== 'playing') return;
-
-    const winner = (chess.turn() === WHITE) ? 'BLACK' : 'WHITE';
-    setGameStatus('timeout');
-    setWinner(winner);
-    stopTimers();
-  }, [chess, gameStatus, stopTimers]);
-
-  const autoRotate = (gameMode==='pvp');
+  const autoRotate = (gameMode === 'pvp');
   const handleLogout = async () => {
     try {
       await fetch(`${config.apiUrl}/logout`, {
@@ -454,6 +492,8 @@ export default function Game() {
     }
   }; const shareUrl = `${window.location.href}`;
 
+  const blackUsername = (gameMode === 'online') ? onlinePlayers[BLACK] : undefined;
+  const whiteUsername = (gameMode === 'online') ? onlinePlayers[WHITE] : undefined;
   return (
     <ThemeProvider>
       <div className="top-menu-container">
@@ -552,9 +592,6 @@ export default function Game() {
                   </button>
                 </div>
               </div>)}
-
-
-
             <div className="board-container">
               <div className="game-content">
                 <div className="graveyard-contant">
@@ -565,6 +602,7 @@ export default function Game() {
                     formatTime={formatTime}
                     graveDiff={graveDiff.black > 0 ? graveDiff.black : 0}
                     active={!chess.isGameOver && chess.turn() === BLACK}
+                    username={blackUsername}
                   />
                   <Graveyard
                     captured={capturedByWhite}
@@ -573,6 +611,7 @@ export default function Game() {
                     formatTime={formatTime}
                     graveDiff={graveDiff.white > 0 ? graveDiff.white : 0}
                     active={!chess.isGameOver && chess.turn() === WHITE}
+                    username={whiteUsername}
                   />
                 </div>
                 <div className="game-board">

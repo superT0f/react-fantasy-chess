@@ -53,7 +53,11 @@ class GameController
         $roomId = $input['roomId'];
 
         $gameState = array_merge($input['gameState'], [
-            'creatorColor' => $input['gameState']['creatorColor'] ?? 'w'
+            'creatorColor' => $input['gameState']['creatorColor'] ?? 'w',
+            'players' => $input['gameState']['players'] ?? [
+                'w' => 'White',
+                'b' => 'Black'
+            ]
         ]);
 
         $stmt = $this->conn->prepare("INSERT INTO chess_games (user_id, room_id, game_state) 
