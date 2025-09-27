@@ -11,7 +11,7 @@ help:
 	@echo "make clean			clean public and build folders"
 	@echo "make prod			build for production env"
 	@echo "make push			push content to Gandi (after checking)"
-	@echo "make dev				serve for dev env"
+	@echo "make dev				start front & backend serve for dev env"
 	@echo "make sync-github		sync main branch to GitHub repository"
 	@echo "make type-check		run TypeScript type check"
 	@echo "make test			run tests"
@@ -22,7 +22,7 @@ help:
 	@echo "make umount			unmount Gandi from ./production"
 	@echo "make ingest			ingest content from git to build folder"
 	@echo "make ingest-light	ingest content from git to build folder without assets"
-	@echo "make php-serve		serve PHP backend for production preview"
+	@echo "make backend			start or restart PHP backend"
 
 
 clean:
@@ -35,9 +35,9 @@ prod: clean
 	@echo "$(YELLOW)📂 Copying PHP API files...$(NC)"
 	cp -r src/backend/api build/api
 	@echo "$(GREEN)✓ Production build completed with PHP API$(NC)"
-dev:
+dev:backend
 	@echo "$(YELLOW)🚀 Starting development server...$(NC)"
-	npm run start
+	export IGNORE_SOURCEMAP_ERRORS=true && npm run start
 	@echo "$(GREEN)Happy coding!$(NC)"
 test:
 	@echo "$(YELLOW)🧪 Running tests...$(NC)"
@@ -64,7 +64,7 @@ backend-deps:
 	@echo "$(YELLOW)📦 Installing backend dependencies...$(NC)"
 	cd src/backend && composer -q install 2>/dev/null >/dev/null
 	@echo "$(GREEN)✓ Backend dependencies installed$(NC)"
-php-serve-start: backend-deps
+backend-start: backend-deps
 	@echo "$(YELLOW)🚀 Starting PHP server for production preview...$(NC)"
 	@mkdir -p logs
 	@cd ./src/backend && php -S localhost:4242 -t api/ >> ../../logs/php.log 2>&1 & \
@@ -74,7 +74,7 @@ php-serve-start: backend-deps
 	@echo "$(YELLOW)You can stop it by running 'make php-serve-stop'$(NC)"
 	@echo "$(YELLOW)Logs are being written to logs/php.log$(NC)"
 	@echo "$(GREEN)Happy testing$(NC)"
-php-serve-stop:
+backend-stop:
 	@echo "$(YELLOW)🛑 Stopping PHP server...$(NC)"
 	@if [ -f ./src/backend/serve.pid ]; then \
 		PID=$$(cat ./src/backend/serve.pid); \
@@ -88,7 +88,7 @@ php-serve-stop:
 	else \
 		echo "$(YELLOW)⚠️  No PID file found, is server running ? $(NC)"; \
 	fi
-php-serve: php-serve-stop php-serve-start
+backend: backend-stop backend-start
 mount:
 	@echo "$(YELLOW)⛰️ Mounting Gandi to ./production...$(NC)"
 	@mkdir ./production || (echo "$(YELLOW)./production already exists$(NC)" ; exit 1)
